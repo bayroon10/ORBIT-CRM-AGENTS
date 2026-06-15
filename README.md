@@ -63,3 +63,15 @@ src/
 *   **OrbitSidebar** — Navegación lateral con secciones y estado activo
 *   **OrbitHeader** — Header con iniciales del usuario y breadcrumb
 *   **OrbitEmptyState** — Estado vacío consistente entre vistas
+
+## Ejecutar n8n localmente con Docker
+
+Orbit CRM usa **n8n** como motor de automatización para la funcionalidad *Agent as a Service*. Para asegurar consistencia y reproducibilidad, n8n se orquesta mediante Docker Compose:
+
+1. Crea el archivo de configuración `.env.n8n` usando `.env.n8n.example` como plantilla.
+2. Asegúrate de no tener otro n8n corriendo en el puerto 5678.
+3. Ejecuta el contenedor en segundo plano:
+   ```sh
+   docker-compose up -d
+   ```
+4. Accede a n8n en `http://localhost:5678` y configura tus credenciales.

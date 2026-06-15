@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  n8n:
+    # Se usa una versión pineada en lugar de 'latest' para garantizar 
+    # la reproducibilidad del entorno y evitar breaking changes inesperados.
+    image: n8nio/n8n:1.45.1
+    container_name: orbit_n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    env_file:
+      - .env.n8n
+    volumes:
+      - ./.n8n-data:/home/node/.n8n

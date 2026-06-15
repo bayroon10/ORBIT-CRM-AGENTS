@@ -89,3 +89,10 @@ async function updateWorkflow() {
   });
 }
 ```
+
+### LESSON 7 — Dockerización y Reproducibilidad
+Para garantizar un entorno reproducible, consistente y profesional, n8n debe ejecutarse mediante Docker Compose.
+- **Fijar Versiones:** En `docker-compose.yml`, siempre usar una versión pineada (ej. `n8nio/n8n:1.45.1`) en lugar de `latest`. Esto previene fallos sorpresivos en el futuro por *breaking changes* en la API o en la estructura de nodos.
+- **Variables de Entorno Base:** Se documentan en `.env.n8n.example`. Imprescindibles: `GENERIC_TIMEZONE` (para precisión de nodos *Schedule* o *Cron*) y `WEBHOOK_URL` (crucial para notificar a n8n el túnel ngrok actual).
+- **Persistencia y Secretos:** El volumen local `.n8n-data/` persiste los flujos y la base de datos SQLite. Los secretos reales NUNCA van en el `.env`; se ingresan vía la interfaz web de n8n para que se guarden encriptados en ese volumen (el cual debe estar en `.gitignore`).
+- **Recuperación de Flujos:** Al levantar un nuevo contenedor, se importa manualmente el archivo `workflow.json` y se reasignan las credenciales.

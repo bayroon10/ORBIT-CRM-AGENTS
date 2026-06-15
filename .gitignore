@@ -46,3 +46,8 @@ stitch-design-package/source/
 .agents/
 skills-lock.json
 supabase/.temp/
+
+# Docker / n8n local
+.n8n-data/
+.env.n8n
+
