@@ -49,15 +49,16 @@
       </div>
 
       <!-- Table -->
-      <div v-else-if="filteredLeads.length > 0" class="overflow-y-auto flex-1">
+      <div v-else-if="filteredLeads.length > 0" class="overflow-x-auto overflow-y-auto flex-1">
         <table class="w-full text-left text-sm">
           <thead class="bg-gray-50 text-gray-500 font-semibold sticky top-0 z-10">
             <tr>
               <th class="px-6 py-4 border-b border-gray-100">Nombre</th>
               <th class="px-6 py-4 border-b border-gray-100">Contacto</th>
-              <th class="px-6 py-4 border-b border-gray-100">Empresa</th>
+              <th class="px-6 py-4 border-b border-gray-100 hidden sm:table-cell">Empresa</th>
+              <th class="px-6 py-4 border-b border-gray-100">Score IA</th>
               <th class="px-6 py-4 border-b border-gray-100">Estado</th>
-              <th class="px-6 py-4 border-b border-gray-100">Fecha</th>
+              <th class="px-6 py-4 border-b border-gray-100 hidden md:table-cell">Fecha</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-50">
@@ -69,8 +70,19 @@
                 <div class="text-text-main">{{ lead.email || '—' }}</div>
                 <div class="text-xs text-text-secondary mt-0.5">{{ lead.phone || '—' }}</div>
               </td>
-              <td class="px-6 py-4 text-text-secondary">
+              <td class="px-6 py-4 text-text-secondary hidden sm:table-cell">
                 {{ lead.companies?.name || '—' }}
+              </td>
+              <td class="px-6 py-4">
+                <div v-if="lead.ai_score != null" class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold border whitespace-nowrap" :class="getScoreBadgeClass(lead.ai_score)">
+                  <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.347a3.5 3.5 0 00-1.035 2.475V19a2 2 0 01-2 2h-1.5a2 2 0 01-2-2v-.189a3.5 3.5 0 00-1.036-2.474l-.347-.347z"/>
+                  </svg>
+                  {{ lead.ai_score }}
+                </div>
+                <div v-else class="text-xs text-gray-400 font-medium italic whitespace-nowrap">
+                  Pendiente
+                </div>
               </td>
               <td class="px-6 py-4">
                 <span 
@@ -80,7 +92,7 @@
                   {{ formatStatus(lead.status) }}
                 </span>
               </td>
-              <td class="px-6 py-4 text-text-secondary whitespace-nowrap">
+              <td class="px-6 py-4 text-text-secondary whitespace-nowrap hidden md:table-cell">
                 {{ formatDate(lead.created_at) }}
               </td>
             </tr>
@@ -325,13 +337,19 @@ const formatDate = (dateString) => {
   }).format(date)
 }
 
+const getScoreBadgeClass = (score) => {
+  if (score >= 70) return 'bg-emerald-50 text-emerald-700 border-emerald-100'
+  if (score >= 40) return 'bg-yellow-50 text-yellow-700 border-yellow-100'
+  return 'bg-red-50 text-red-700 border-red-100'
+}
+
 const fetchLeads = async () => {
   loading.value = true
   error.value = null
   try {
     const { data, error: err } = await supabase
       .from('leads')
-      .select('id, full_name, email, phone, status, created_at, companies(name)')
+      .select('id, full_name, email, phone, status, created_at, ai_score, ai_category, companies(name)')
       .order('created_at', { ascending: false })
       
     if (err) throw err
