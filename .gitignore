@@ -1,0 +1,48 @@
+Dependencies
+node_modules/
+npm-debug.log*
+
+Build output
+dist/
+dist-ssr/
+
+Environment variables — NUNCA subir al repo
+.env
+.env.local
+.env.*.local
+
+Editor
+.vscode/settings.json
+.idea/
+*.suo
+.ntvs
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+
+# QA / Playwright
+.playwright-mcp/
+qa-screenshot.mjs
+*.mjs.tmp
+
+# Backup
+backup/
+orbit-design-system.zip
+*.zip
+
+# Debug scripts (generados automáticamente por Antigravity)
+*.cjs.debug
+implementation_plan.md
+task.md
+walkthrough.md
+
+# Design system source (pesado, no necesario en repo)
+stitch-design-package/screens/
+stitch-design-package/source/
+
+# Agent/Tool config
+.agents/
+skills-lock.json
+supabase/.temp/
