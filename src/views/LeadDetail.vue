@@ -39,69 +39,140 @@
 
       <div class="flex-1 overflow-y-auto pb-8">
         
-        <!-- Panel IA — solo visible si lead.ai_score existe -->
-        <div v-if="lead.ai_score" 
-             class="mx-6 -mt-4 mb-6 rounded-2xl border border-blue-100 
-                    bg-gradient-to-r from-blue-50 to-indigo-50 p-5 shadow-sm">
-          
-          <!-- Header del panel -->
-          <div class="flex items-center gap-2 mb-4">
-            <!-- ícono robot SVG inline -->
-            <svg class="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5
-                   a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-            </svg>
-            <span class="text-sm font-semibold text-primary">Análisis IA</span>
-            <span class="ml-auto text-xs text-gray-400">
-              {{ formatDate(lead.ai_analyzed_at) }}
-            </span>
-          </div>
+        <!-- Panel Sales Intelligence — siempre visible cuando hay lead -->
+        <div class="mx-6 mb-6 animate-fadeInUp">
 
-          <!-- Score + Category -->
-          <div class="flex items-center gap-4 mb-4">
-            <!-- Score circular -->
-            <div class="flex flex-col items-center">
-              <div class="w-16 h-16 rounded-full flex items-center justify-center font-bold text-xl text-white shadow-md"
-                   :class="{
-                     'bg-red-500': lead.ai_score >= 70,
-                     'bg-yellow-500': lead.ai_score >= 40 && lead.ai_score < 70,
-                     'bg-gray-400': lead.ai_score < 40
-                   }">
-                {{ lead.ai_score }}
+          <!-- ESTADO: análisis disponible -->
+          <div v-if="lead.ai_score"
+               class="rounded-2xl border border-border bg-white shadow-sm overflow-hidden">
+
+            <!-- Banda de acento superior con color dinámico según score -->
+            <div class="h-1 w-full"
+                 :class="getScoreAccentClass(lead.ai_score)"></div>
+
+            <div class="p-5">
+              <!-- Header -->
+              <div class="flex items-center justify-between mb-5">
+                <div class="flex items-center gap-2">
+                  <!-- Ícono sparkle / IA -->
+                  <div class="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.347a3.5 3.5 0 00-1.035 2.475V19a2 2 0 01-2 2h-1.5a2 2 0 01-2-2v-.189a3.5 3.5 0 00-1.036-2.474l-.347-.347z"/>
+                    </svg>
+                  </div>
+                  <span class="text-sm font-semibold text-text-main">Sales Intelligence</span>
+                </div>
+                <!-- Fecha de análisis -->
+                <div class="flex items-center gap-1.5 text-xs text-text-secondary">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                  Analizado {{ formatDate(lead.ai_analyzed_at) }}
+                </div>
               </div>
-              <span class="text-xs text-gray-500 mt-1 font-medium">Score</span>
-            </div>
-            <!-- Category badge -->
-            <div>
-              <span class="rounded-full px-3 py-1 text-sm font-semibold shadow-sm"
-                    :class="{
-                      'bg-red-100 text-red-700 border border-red-200': lead.ai_category === 'Hot',
-                      'bg-yellow-100 text-yellow-700 border border-yellow-200': lead.ai_category === 'Warm',
-                      'bg-gray-100 text-gray-600 border border-gray-200': lead.ai_category === 'Cold'
-                    }">
-                {{ lead.ai_category === 'Hot' ? '🔥 Hot' : 
-                   lead.ai_category === 'Warm' ? '⚡ Warm' : '❄️ Cold' }}
-              </span>
-              <p class="text-xs text-gray-400 mt-1">Categoría</p>
+
+              <!-- Score + Categoría: row principal -->
+              <div class="flex items-center gap-5 mb-5">
+
+                <!-- Score hero -->
+                <div class="flex flex-col items-center justify-center w-20 h-20 rounded-2xl shadow-sm border shrink-0"
+                     :class="getScoreBgClass(lead.ai_score)">
+                  <span class="text-3xl font-bold leading-none" :class="getScoreTextClass(lead.ai_score)">
+                    {{ lead.ai_score }}
+                  </span>
+                  <span class="text-xs font-medium mt-0.5" :class="getScoreTextClass(lead.ai_score)">
+                    Potencial
+                  </span>
+                </div>
+
+                <!-- Separador + Categoría + descripción -->
+                <div class="flex-1">
+                  <!-- Badge de categoría sin emojis -->
+                  <div class="flex items-center gap-2 mb-2">
+                    <!-- Ícono de categoría SVG inline -->
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold border"
+                          :class="getCategoryClass(lead.ai_category)">
+                      <!-- Hot -->
+                      <svg v-if="lead.ai_category === 'Hot'" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z"/>
+                      </svg>
+                      <!-- Warm -->
+                      <svg v-else-if="lead.ai_category === 'Warm'" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"/>
+                        <line x1="12" y1="1" x2="12" y2="3"/>
+                        <line x1="12" y1="21" x2="12" y2="23"/>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                        <line x1="1" y1="12" x2="3" y2="12"/>
+                        <line x1="21" y1="12" x2="23" y2="12"/>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                      </svg>
+                      <!-- Cold -->
+                      <svg v-else class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="2" x2="12" y2="22"/>
+                        <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+                      </svg>
+                      {{ lead.ai_category }}
+                    </span>
+                  </div>
+                  <p class="text-xs text-text-secondary leading-relaxed">
+                    {{ getCategoryDescription(lead.ai_category) }}
+                  </p>
+                </div>
+
+              </div>
+
+              <!-- Divisor -->
+              <div class="border-t border-border mb-4"></div>
+
+              <!-- Perfil del Prospecto (ex Resumen) -->
+              <div class="mb-4">
+                <p class="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1.5">
+                  Perfil del Prospecto
+                </p>
+                <p class="text-sm text-text-main leading-relaxed">{{ lead.ai_summary }}</p>
+              </div>
+
+              <!-- Acción Recomendada (ex Próximo paso) -->
+              <div class="rounded-xl bg-primary/5 border border-primary/15 px-4 py-3">
+                <div class="flex items-center gap-2 mb-1">
+                  <!-- Check icon -->
+                  <svg class="w-3.5 h-3.5 text-primary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  <p class="text-xs font-semibold text-primary uppercase tracking-wider">
+                    Acción Recomendada
+                  </p>
+                </div>
+                <p class="text-sm font-medium text-text-main pl-5">{{ lead.ai_next_step }}</p>
+              </div>
             </div>
           </div>
 
-          <!-- Summary -->
-          <div class="mb-3">
-            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-              Resumen
-            </p>
-            <p class="text-sm text-gray-700">{{ lead.ai_summary }}</p>
+          <!-- ESTADO: sin análisis disponible -->
+          <div v-else
+               class="rounded-2xl border border-border bg-white shadow-sm p-5">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center shrink-0">
+                <svg class="w-6 h-6 text-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.347a3.5 3.5 0 00-1.035 2.475V19a2 2 0 01-2 2h-1.5a2 2 0 01-2-2v-.189a3.5 3.5 0 00-1.036-2.474l-.347-.347z"/>
+                </svg>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-text-main">Sales Intelligence</p>
+                <p class="text-xs text-text-secondary mt-0.5">
+                  El análisis IA aún no está disponible para este prospecto.
+                  Se generará automáticamente al registrar el lead.
+                </p>
+              </div>
+            </div>
           </div>
 
-          <!-- Next step -->
-          <div class="rounded-xl bg-white border border-blue-100 px-4 py-3 shadow-sm">
-            <p class="text-xs font-medium text-primary uppercase tracking-wide mb-1">
-              ✅ Próximo paso recomendado
-            </p>
-            <p class="text-sm font-medium text-gray-800">{{ lead.ai_next_step }}</p>
-          </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -314,6 +385,49 @@ const getStatusClass = (status) => {
     'calificado': 'bg-green-100 text-green-700'
   }
   return map[status] || 'bg-gray-100 text-gray-700'
+}
+
+// --- Helpers del panel Sales Intelligence ---
+
+// Color de acento superior de la card (banda de 4px)
+const getScoreAccentClass = (score) => {
+  if (score >= 70) return 'bg-gradient-to-r from-emerald-400 to-emerald-600'
+  if (score >= 40) return 'bg-gradient-to-r from-yellow-400 to-orange-400'
+  return 'bg-gradient-to-r from-red-400 to-red-600'
+}
+
+// Fondo + borde de la caja del score hero
+const getScoreBgClass = (score) => {
+  if (score >= 70) return 'bg-emerald-50 border-emerald-200'
+  if (score >= 40) return 'bg-yellow-50 border-yellow-200'
+  return 'bg-red-50 border-red-200'
+}
+
+// Color del número y etiqueta dentro del score hero
+const getScoreTextClass = (score) => {
+  if (score >= 70) return 'text-emerald-700'
+  if (score >= 40) return 'text-yellow-700'
+  return 'text-red-700'
+}
+
+// Badge de categoría (Hot / Warm / Cold)
+const getCategoryClass = (category) => {
+  const map = {
+    'Hot':  'bg-red-50 text-red-700 border-red-200',
+    'Warm': 'bg-yellow-50 text-yellow-700 border-yellow-200',
+    'Cold': 'bg-blue-50 text-blue-700 border-blue-200'
+  }
+  return map[category] || 'bg-surface-container text-text-secondary border-border'
+}
+
+// Descripción de apoyo bajo el badge de categoría
+const getCategoryDescription = (category) => {
+  const map = {
+    'Hot':  'Prospecto con alta probabilidad de conversión. Prioridad máxima.',
+    'Warm': 'Prospecto con interés moderado. Requiere seguimiento activo.',
+    'Cold': 'Prospecto con baja señal de intención. Contacto a largo plazo.'
+  }
+  return map[category] || ''
 }
 
 const getActivityIcon = (type) => {
