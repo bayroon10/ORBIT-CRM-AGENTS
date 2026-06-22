@@ -1,80 +1,39 @@
 <template>
-  <div class="flex flex-col h-full relative overflow-x-hidden">
-    <!-- Hero Header -->
-    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 via-blue-950 to-gray-900 px-8 py-10 mb-8 shadow-xl shrink-0">
-      <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle, #ffffff 1px, transparent 1px); background-size: 24px 24px;"></div>
-      <div class="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-10" style="background: radial-gradient(circle, #3b82f6, transparent 70%);"></div>
+  <div class="flex flex-col h-full">
+    <!-- ── Hero Header ── -->
+    <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 px-8 py-10 mb-8 border border-primary/20 shadow-lg shrink-0">
+      <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle, #818cf8 1px, transparent 1px); background-size: 24px 24px;"></div>
+      <div class="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-15" style="background: radial-gradient(circle, #6366f1, transparent 70%);"></div>
       <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div class="flex items-center gap-2 mb-3">
-            <span class="px-2.5 py-1 bg-blue-500/20 text-blue-300 text-xs font-semibold rounded-full border border-blue-500/30 uppercase tracking-wide">Propuestas</span>
+            <BaseBadge variant="primary">Comercial</BaseBadge>
           </div>
-          <h1 class="text-3xl font-bold text-white mb-2 tracking-tight">Cotizaciones</h1>
-          <p class="text-gray-400 text-sm">Gestiona y haz seguimiento de todas tus propuestas comerciales.</p>
+          <h1 class="text-3xl font-bold text-text-main mb-2 tracking-tight">Cotizaciones</h1>
+          <p class="text-text-secondary text-sm">Gestiona y haz seguimiento de todas tus propuestas comerciales.</p>
         </div>
-        <button 
-          @click="router.push('/quotes/new')"
-          class="bg-primary hover:bg-primary-variant btn-glow text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 shadow-sm"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-          Nueva cotización
-        </button>
+        <BaseButton @click="showModal = true" size="lg">Nueva Cotización</BaseButton>
       </div>
     </div>
 
-    <!-- Error State -->
-    <div v-if="error" class="mb-6 bg-danger-bg text-danger p-4 rounded-lg text-sm border border-danger/10 shrink-0">
+    <!-- ── Error State ── -->
+    <div v-if="error" class="mb-6 bg-danger-bg text-danger p-4 rounded-lg text-sm border border-danger/20 shrink-0">
       {{ error }}
     </div>
 
-    <!-- Summary Metrics -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 shrink-0" v-if="quotes.length > 0">
-      <div class="bg-white border border-gray-100 rounded-xl p-4 shadow-sm flex flex-col gap-1">
-        <span class="text-sm font-semibold text-text-secondary">Total Cotizaciones</span>
-        <span class="text-2xl font-bold text-text-main">{{ quotes.length }}</span>
-      </div>
-      <div class="bg-white border border-gray-100 rounded-xl p-4 shadow-sm flex flex-col gap-1">
-        <span class="text-sm font-semibold text-text-secondary">Pendientes</span>
-        <span class="text-2xl font-bold text-text-main">{{ pendingQuotesCount }}</span>
-      </div>
-      <div class="bg-white border border-gray-100 rounded-xl p-4 shadow-sm flex flex-col gap-1">
-        <span class="text-sm font-semibold text-text-secondary">Aprobadas</span>
-        <span class="text-2xl font-bold text-text-main">{{ approvedQuotesCount }}</span>
-      </div>
-      <div class="bg-white border border-primary/30 rounded-xl p-4 shadow-sm flex flex-col gap-1 relative overflow-hidden">
-        <div class="absolute inset-0 bg-primary/5 pointer-events-none"></div>
-        <span class="text-sm font-semibold text-text-secondary relative z-10">Valor Total Estimado</span>
-        <span class="text-2xl font-bold text-primary relative z-10">{{ formatCurrency(totalValue) }}</span>
-      </div>
-    </div>
-
-    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 overflow-hidden">
+    <!-- ── Table Card ── -->
+    <BaseCard :padded="false" class="flex flex-col flex-1 overflow-hidden">
       <!-- Filtros / Buscador -->
-      <div class="p-4 border-b border-gray-100 flex justify-between items-center shrink-0">
-        <div class="flex items-center gap-4">
-          <div class="relative w-72">
-            <input 
-              v-model="searchQuery"
-              type="text" 
-              placeholder="Buscar por cliente o ID..." 
-              class="w-full pl-10 pr-4 py-2 bg-surface border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-            />
-            <div class="absolute left-3 top-2.5 text-text-secondary">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            </div>
-          </div>
-          <div class="relative">
-            <select 
-              v-model="selectedStatus"
-              class="appearance-none bg-surface border border-border rounded-lg px-4 py-2 pr-10 text-sm text-text-secondary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all"
-            >
-              <option value="">Todos los estados</option>
-              <option value="Borrador">Borrador</option>
-              <option value="Enviada">Enviada</option>
-              <option value="Aprobada">Aprobada</option>
-              <option value="Rechazada">Rechazada</option>
-            </select>
-            <svg class="absolute right-3 top-2.5 pointer-events-none text-text-secondary" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      <div class="p-4 border-b border-border flex justify-between items-center shrink-0">
+        <div class="relative w-72">
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Buscar por código..."
+            class="w-full pl-10 pr-4 py-2 bg-surface border border-border rounded-lg text-sm text-text-main placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+          />
+          <div class="absolute left-3 top-2.5 text-text-muted">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           </div>
         </div>
       </div>
@@ -85,103 +44,275 @@
         <p class="text-sm text-text-secondary">Cargando cotizaciones...</p>
       </div>
 
-      <!-- Empty State -->
-      <div v-else-if="filteredQuotes.length === 0" class="py-16 flex-1 flex items-center justify-center">
-        <OrbitEmptyState 
-          :title="searchQuery || selectedStatus ? 'No hay resultados' : 'No hay cotizaciones'" 
-          :description="searchQuery || selectedStatus ? 'No se encontraron cotizaciones que coincidan con los filtros.' : 'Genera tu primera propuesta comercial.'"
-        />
-      </div>
-
-      <!-- Data Table -->
-      <div v-else class="overflow-y-auto flex-1">
+      <!-- Table -->
+      <div v-else-if="filteredQuotes.length > 0" class="overflow-x-auto overflow-y-auto flex-1">
         <table class="w-full text-left text-sm">
-          <thead class="bg-[#f0edef] text-text-secondary font-semibold sticky top-0 z-10">
+          <thead class="bg-surface-container text-text-muted font-semibold sticky top-0 z-10">
             <tr>
-              <th class="px-6 py-4 border-b border-gray-100 uppercase tracking-wider text-xs">#</th>
-              <th class="px-6 py-4 border-b border-gray-100 uppercase tracking-wider text-xs">Cliente</th>
-              <th class="px-6 py-4 border-b border-gray-100 uppercase tracking-wider text-xs text-right">Monto</th>
-              <th class="px-6 py-4 border-b border-gray-100 uppercase tracking-wider text-xs">Estado</th>
-              <th class="px-6 py-4 border-b border-gray-100 uppercase tracking-wider text-xs">Fecha</th>
-              <th class="px-6 py-4 border-b border-gray-100 uppercase tracking-wider text-xs text-right">Acciones</th>
+              <th class="px-6 py-4 border-b border-border uppercase tracking-wider text-xs">Código</th>
+              <th class="px-6 py-4 border-b border-border uppercase tracking-wider text-xs">Negocio</th>
+              <th class="px-6 py-4 border-b border-border uppercase tracking-wider text-xs">Monto</th>
+              <th class="px-6 py-4 border-b border-border uppercase tracking-wider text-xs">Estado</th>
+              <th class="px-6 py-4 border-b border-border uppercase tracking-wider text-xs hidden md:table-cell">Válida Hasta</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-50">
-            <tr v-for="quote in filteredQuotes" :key="quote.id" class="hover:bg-primary/5 transition-colors group">
-              <td class="px-6 py-4 font-medium text-primary">
-                #QT-{{ String(quote.id).padStart(5, '0') }}
+          <tbody class="divide-y divide-border">
+            <tr
+              v-for="quote in filteredQuotes"
+              :key="quote.id"
+              @click="router.push(`/quotes/${quote.id}`)"
+              class="hover:bg-surface-container/60 transition-colors cursor-pointer group"
+            >
+              <td class="px-6 py-4">
+                <div class="font-medium text-text-main group-hover:text-primary-300 transition-colors">{{ quote.quote_number }}</div>
+              </td>
+              <td class="px-6 py-4 text-text-secondary">
+                {{ quote.deals?.title || '—' }}
+              </td>
+              <td class="px-6 py-4 font-semibold text-success">
+                {{ formatCurrency(quote.amount) }}
               </td>
               <td class="px-6 py-4">
-                <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-full bg-surface flex items-center justify-center border border-border text-xs font-bold text-text-secondary">
-                    {{ getInitials(getClientName(quote)) }}
-                  </div>
-                  <div>
-                    <div class="font-semibold text-text-main">{{ getClientName(quote) }}</div>
-                    <div class="text-xs text-text-secondary">{{ quote.leads?.full_name || 'Sin contacto' }}</div>
-                  </div>
-                </div>
+                <BaseBadge :variant="getStatusVariant(quote.status)">
+                  {{ translateStatus(quote.status) }}
+                </BaseBadge>
               </td>
-              <td class="px-6 py-4 text-right font-semibold text-text-main">
-                {{ formatCurrency(quote.value) }}
-              </td>
-              <td class="px-6 py-4">
-                <span 
-                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border"
-                  :class="getStatusBadgeClass(getMappedStatus(quote.stage))"
-                >
-                  {{ getMappedStatus(quote.stage) }}
-                </span>
-              </td>
-              <td class="px-6 py-4 text-text-secondary whitespace-nowrap">
-                {{ formatDate(quote.created_at) }}
-              </td>
-              <td class="px-6 py-4 text-right">
-                <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button class="p-1.5 text-text-secondary hover:text-primary rounded hover:bg-primary/10 transition-colors" title="Ver">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                  </button>
-                  <button class="p-1.5 text-text-secondary hover:text-primary rounded hover:bg-primary/10 transition-colors" title="Editar">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                  </button>
-                </div>
+              <td class="px-6 py-4 text-text-secondary whitespace-nowrap hidden md:table-cell">
+                {{ formatDate(quote.valid_until) }}
               </td>
             </tr>
           </tbody>
         </table>
       </div>
-    </div>
+
+      <!-- Empty State -->
+      <div v-else class="py-16 flex-1 flex items-center justify-center">
+        <OrbitEmptyState
+          :title="searchQuery ? 'No hay resultados' : 'No hay cotizaciones'"
+          :description="searchQuery ? 'No se encontraron cotizaciones que coincidan con tu búsqueda.' : 'Crea tu primera cotización y asóciala a un negocio.'"
+        />
+      </div>
+    </BaseCard>
+
+    <!-- ── Modal Nueva Cotización ── -->
+    <OrbitModal v-model="showModal" title="Nueva Cotización">
+      <form @submit.prevent="submitQuote" class="space-y-4">
+
+        <div v-if="formError" class="bg-danger-bg text-danger p-3 rounded-lg text-sm flex items-start gap-2 border border-danger/20">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 shrink-0"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          <span>{{ formError }}</span>
+        </div>
+
+        <div class="bg-surface-card border border-border p-3 rounded-lg text-sm text-text-secondary mb-4">
+          <svg class="inline-block w-4 h-4 mr-1 mb-0.5 text-primary-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          El código <span class="font-bold text-text-main">Quote Number</span> se generará automáticamente tras guardar.
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-text-main mb-1">Negocio Asociado (Deal) *</label>
+          <select
+            v-model="form.deal_id"
+            required
+            class="w-full border border-border-strong rounded-lg px-3 py-2 text-sm bg-surface text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+          >
+            <option value="" disabled>Seleccione un negocio</option>
+            <option v-for="deal in availableDeals" :key="deal.id" :value="deal.id">
+              {{ deal.title }}
+            </option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-text-main mb-1">Monto *</label>
+          <input
+            v-model="form.amount"
+            type="number"
+            min="0"
+            step="0.01"
+            required
+            placeholder="0.00"
+            class="w-full border border-border-strong rounded-lg px-3 py-2 text-sm bg-surface text-text-main placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-text-main mb-1">Estado</label>
+          <select
+            v-model="form.status"
+            class="w-full border border-border-strong rounded-lg px-3 py-2 text-sm bg-surface text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+          >
+            <option value="draft">Borrador</option>
+            <option value="sent">Enviada</option>
+            <option value="accepted">Aceptada</option>
+            <option value="rejected">Rechazada</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-text-main mb-1">Válida Hasta</label>
+          <input
+            v-model="form.valid_until"
+            type="date"
+            class="w-full border border-border-strong rounded-lg px-3 py-2 text-sm bg-surface text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+          />
+        </div>
+      </form>
+
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <BaseButton variant="secondary" @click="showModal = false">Cancelar</BaseButton>
+          <BaseButton :loading="formLoading" @click="submitQuote">
+            {{ formLoading ? 'Guardando...' : 'Guardar' }}
+          </BaseButton>
+        </div>
+      </template>
+    </OrbitModal>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '../lib/supabase'
 import OrbitEmptyState from '../components/OrbitEmptyState.vue'
+import OrbitModal from '../components/OrbitModal.vue'
+import BaseCard from '../components/BaseCard.vue'
+import BaseBadge from '../components/BaseBadge.vue'
+import BaseButton from '../components/BaseButton.vue'
 
 const router = useRouter()
 const quotes = ref([])
+const availableDeals = ref([])
 const loading = ref(true)
 const error = ref(null)
-
 const searchQuery = ref('')
-const selectedStatus = ref('')
+
+// Modal & Form State
+const showModal = ref(false)
+const formLoading = ref(false)
+const formError = ref(null)
+
+const form = reactive({
+  deal_id: '',
+  amount: '',
+  status: 'draft',
+  valid_until: ''
+})
+
+const resetForm = () => {
+  form.deal_id = ''
+  form.amount = ''
+  form.status = 'draft'
+  form.valid_until = ''
+  formError.value = null
+}
+
+watch(showModal, (newVal) => {
+  if (!newVal) resetForm()
+})
+
+const submitQuote = async () => {
+  if (!form.deal_id) {
+    formError.value = 'Debe seleccionar un negocio asociado.'
+    return
+  }
+  if (!form.amount) {
+    formError.value = 'El monto es obligatorio.'
+    return
+  }
+
+  formLoading.value = true
+  formError.value = null
+
+  try {
+    const { error: insertError } = await supabase
+      .from('quotes')
+      .insert({
+        deal_id: form.deal_id,
+        amount: parseFloat(form.amount),
+        status: form.status,
+        valid_until: form.valid_until || null
+      })
+
+    if (insertError) throw insertError
+
+    showModal.value = false
+    resetForm()
+    await fetchQuotes()
+  } catch (err) {
+    console.error('Error al crear cotización:', err)
+    formError.value = err.message
+  } finally {
+    formLoading.value = false
+  }
+}
+
+const filteredQuotes = computed(() => {
+  if (!searchQuery.value) return quotes.value
+  const query = searchQuery.value.toLowerCase()
+  return quotes.value.filter(quote =>
+    quote.quote_number?.toLowerCase().includes(query)
+  )
+})
+
+const formatCurrency = (value) => {
+  if (value == null) return '—'
+  return '$' + new Intl.NumberFormat('es-CL').format(value)
+}
+
+const formatDate = (dateString) => {
+  if (!dateString) return '—'
+  const date = new Date(dateString)
+  // Fix timezone shift
+  date.setMinutes(date.getMinutes() + date.getTimezoneOffset())
+  return new Intl.DateTimeFormat('es-CL', {
+    dateStyle: 'medium'
+  }).format(date)
+}
+
+const getStatusVariant = (status) => {
+  const map = {
+    'draft': 'default',
+    'sent': 'primary',
+    'accepted': 'success',
+    'rejected': 'danger'
+  }
+  return map[status] || 'default'
+}
+
+const translateStatus = (status) => {
+  const map = {
+    'draft': 'Borrador',
+    'sent': 'Enviada',
+    'accepted': 'Aceptada',
+    'rejected': 'Rechazada'
+  }
+  return map[status] || status
+}
 
 const fetchQuotes = async () => {
   loading.value = true
   error.value = null
   try {
     const { data, error: err } = await supabase
-      .from('deals')
-      .select('id, title, value, stage, created_at, companies(name), leads(full_name)')
-      .gt('value', 0)
+      .from('quotes')
+      .select('id, quote_number, deal_id, amount, status, valid_until, created_at, deals(title)')
       .order('created_at', { ascending: false })
-      
+
     if (err) throw err
     quotes.value = data || []
+    
+    // Also fetch deals for the modal
+    const { data: dealsData } = await supabase
+      .from('deals')
+      .select('id, title')
+      .order('title', { ascending: true })
+      
+    if (dealsData) {
+      availableDeals.value = dealsData
+    }
   } catch (err) {
-    console.error('Error fetching quotes:', err)
+    console.error('Error al cargar cotizaciones:', err)
     error.value = 'Ocurrió un error al cargar las cotizaciones.'
   } finally {
     loading.value = false
@@ -190,76 +321,5 @@ const fetchQuotes = async () => {
 
 onMounted(() => {
   fetchQuotes()
-})
-
-const getMappedStatus = (stage) => {
-  const map = {
-    'prospecto': 'Borrador',
-    'cotizado': 'Enviada',
-    'negociando': 'Enviada',
-    'ganado': 'Aprobada',
-    'perdido': 'Rechazada'
-  }
-  return map[stage] || 'Borrador'
-}
-
-const getStatusBadgeClass = (status) => {
-  const map = {
-    'Borrador': 'bg-gray-100 text-gray-600 border-gray-200',
-    'Enviada': 'bg-[#d8e2ff] text-[#085ac0] border-[#085ac0]/20',
-    'Aprobada': 'bg-[#84f9c3] text-[#019668] border-[#019668]/20',
-    'Rechazada': 'bg-[#ffdad6] text-[#ba1a1a] border-[#ba1a1a]/20'
-  }
-  return map[status] || 'bg-gray-100 text-gray-600 border-gray-200'
-}
-
-const getClientName = (quote) => {
-  return quote.companies?.name || quote.title || 'Sin cliente'
-}
-
-const getInitials = (name) => {
-  if (!name) return '?'
-  return name.substring(0, 2).toUpperCase()
-}
-
-const filteredQuotes = computed(() => {
-  return quotes.value.filter(quote => {
-    const clientName = getClientName(quote).toLowerCase()
-    const matchName = clientName.includes(searchQuery.value.toLowerCase()) || 
-                      String(quote.id).includes(searchQuery.value)
-    
-    const mappedStatus = getMappedStatus(quote.stage)
-    const matchStatus = !selectedStatus.value || mappedStatus === selectedStatus.value
-    
-    return matchName && matchStatus
-  })
-})
-
-const formatCurrency = (value) => {
-  if (value === null || value === undefined) return '—'
-  return '$' + new Intl.NumberFormat('es-CL').format(value)
-}
-
-const formatDate = (dateString) => {
-  if (!dateString) return ''
-  return new Intl.DateTimeFormat('es-CL', {
-    dateStyle: 'medium'
-  }).format(new Date(dateString))
-}
-
-// Derived Metrics
-const totalValue = computed(() => {
-  return quotes.value.reduce((acc, curr) => acc + (Number(curr.value) || 0), 0)
-})
-
-const pendingQuotesCount = computed(() => {
-  return quotes.value.filter(q => {
-    const status = getMappedStatus(q.stage)
-    return status === 'Borrador' || status === 'Enviada'
-  }).length
-})
-
-const approvedQuotesCount = computed(() => {
-  return quotes.value.filter(q => getMappedStatus(q.stage) === 'Aprobada').length
 })
 </script>

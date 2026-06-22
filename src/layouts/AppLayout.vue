@@ -3,7 +3,7 @@
     <OrbitSidebar />
     <div class="flex-1 flex flex-col overflow-hidden">
       <OrbitHeader />
-      <main ref="mainContent" class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-6">
+      <main ref="mainContent" class="flex-1 overflow-x-hidden overflow-y-auto bg-surface p-6">
         <div class="mx-auto max-w-7xl relative">
           <router-view v-slot="{ Component, route }">
             <Transition
@@ -18,6 +18,9 @@
         </div>
       </main>
     </div>
+    
+    <!-- Contenedor global de notificaciones realtime -->
+    <OrbitToastContainer />
   </div>
 </template>
 
@@ -27,6 +30,7 @@ import { useRoute } from 'vue-router'
 import { gsap } from 'gsap'
 import OrbitSidebar from '../components/OrbitSidebar.vue'
 import OrbitHeader from '../components/OrbitHeader.vue'
+import OrbitToastContainer from '../components/OrbitToastContainer.vue'
 
 const route = useRoute()
 const mainContent = ref(null)

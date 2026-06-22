@@ -22,13 +22,16 @@ const router = createRouter({
         { path: 'deals', name: 'Deals', component: () => import('../views/Deals.vue') },
         { path: 'deals/:id', name: 'DealDetail', component: () => import('../views/DealDetail.vue') },
         { path: 'companies', name: 'Companies', component: () => import('../views/Companies.vue') },
+        { path: 'companies/:id', name: 'CompanyDetail', component: () => import('../views/CompanyDetail.vue') },
         { path: 'tasks', name: 'Tasks', component: () => import('../views/Tasks.vue') },
         { path: 'quotes', name: 'Quotes', component: () => import('../views/Quotes.vue') },
-        { path: 'quotes/new', name: 'QuoteForm', component: () => import('../views/QuoteForm.vue') },
+        { path: 'quotes/:id', name: 'QuoteDetail', component: () => import('../views/QuoteDetail.vue') },
         { path: 'sales', name: 'Sales', component: () => import('../views/Sales.vue') },
-        { path: 'settings', name: 'Settings', component: () => import('../views/Settings.vue') },
-        { path: 'settings/users', name: 'SettingsUsers', component: () => import('../views/SettingsUsers.vue') },
-        { path: 'activity', name: 'Activity', component: () => import('../views/Activity.vue') }
+        { path: 'settings', name: 'Settings', meta: { requiresAdmin: true }, component: () => import('../views/Settings.vue') },
+        { path: 'settings/users', name: 'SettingsUsers', meta: { requiresAdmin: true }, component: () => import('../views/SettingsUsers.vue') },
+        { path: 'settings/providers', name: 'ProviderSettings', meta: { requiresAdmin: true }, component: () => import('../views/ProviderSettingsView.vue') },
+        { path: 'activity', name: 'Activity', component: () => import('../views/Activity.vue') },
+        { path: 'automation-center', name: 'AutomationCenter', meta: { requiresAdmin: true }, component: () => import('../views/AutomationCenterView.vue') }
       ]
     },
     {
@@ -45,10 +48,17 @@ router.beforeEach(async (to) => {
     if (error) throw error
 
     const session = data?.session ?? null
+    const role = session?.user?.user_metadata?.role || 'seller'
 
     if (to.meta.requiresAuth && !session) {
       return { name: 'Login', query: { redirect: to.fullPath } }
     }
+    
+    // RBAC: Block non-admins from accessing requiresAdmin routes
+    if (to.meta.requiresAdmin && role !== 'admin' && role !== 'superadmin') {
+      return { name: 'Dashboard' }
+    }
+
     if (to.name === 'Login' && session) {
       return { name: 'Dashboard' }
     }

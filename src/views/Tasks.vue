@@ -1,42 +1,38 @@
 <template>
   <div class="flex flex-col h-full">
-    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 via-blue-950 to-gray-900 px-8 py-10 mb-8 shadow-xl shrink-0">
-      <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle, #ffffff 1px, transparent 1px); background-size: 24px 24px;"></div>
-      <div class="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-10" style="background: radial-gradient(circle, #3b82f6, transparent 70%);"></div>
+    <!-- ── Hero Header ── -->
+    <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 px-8 py-10 mb-8 border border-primary/20 shadow-lg shrink-0">
+      <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle, #818cf8 1px, transparent 1px); background-size: 24px 24px;"></div>
+      <div class="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-15" style="background: radial-gradient(circle, #6366f1, transparent 70%);"></div>
       <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div class="flex items-center gap-2 mb-3">
-            <span class="px-2.5 py-1 bg-blue-500/20 text-blue-300 text-xs font-semibold rounded-full border border-blue-500/30 uppercase tracking-wide">Gestión</span>
+            <BaseBadge variant="primary">Gestión</BaseBadge>
           </div>
-          <h1 class="text-3xl font-bold text-white mb-2 tracking-tight">Tareas</h1>
-          <p class="text-gray-400 text-sm">Gestión de pendientes, llamadas y correos.</p>
+          <h1 class="text-3xl font-bold text-text-main mb-2 tracking-tight">Tareas</h1>
+          <p class="text-text-secondary text-sm">Gestión de pendientes, llamadas y correos.</p>
         </div>
-        <button 
-          @click="openModal"
-          class="bg-primary hover:bg-primary-variant btn-glow text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-all"
-        >
-          Nueva Tarea
-        </button>
+        <BaseButton @click="openModal" size="lg">Nueva Tarea</BaseButton>
       </div>
     </div>
-    
-    <!-- Error State -->
-    <div v-if="error" class="mb-6 bg-danger-bg text-danger p-4 rounded-lg text-sm border border-danger/10 shrink-0">
+
+    <!-- ── Error State ── -->
+    <div v-if="error" class="mb-6 bg-danger-bg text-danger p-4 rounded-lg text-sm border border-danger/20 shrink-0">
       {{ error }}
     </div>
 
-    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 overflow-hidden">
+    <!-- ── Table Card ── -->
+    <BaseCard :padded="false" class="flex flex-col flex-1 overflow-hidden">
       <!-- Filtros / Buscador -->
-      <div class="p-4 border-b border-gray-100 flex justify-between items-center shrink-0">
+      <div class="p-4 border-b border-border flex justify-between items-center shrink-0">
         <div class="relative w-72">
-          <input 
+          <input
             v-model="searchQuery"
-            type="text" 
-            placeholder="Buscar tarea..." 
-            class="w-full pl-10 pr-4 py-2 bg-surface border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+            type="text"
+            placeholder="Buscar tarea..."
+            class="w-full pl-10 pr-4 py-2 bg-surface border border-border rounded-lg text-sm text-text-main placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
           />
-          <div class="absolute left-3 top-2.5 text-text-secondary">
-            <!-- Search Icon -->
+          <div class="absolute left-3 top-2.5 text-text-muted">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           </div>
         </div>
@@ -48,24 +44,28 @@
         <p class="text-sm text-text-secondary">Cargando pendientes...</p>
       </div>
 
-      <!-- Listado de Tareas -->
+      <!-- Table -->
       <div v-else-if="filteredTasks.length > 0" class="overflow-y-auto flex-1">
         <table class="w-full text-left text-sm">
-          <thead class="bg-gray-50 text-gray-500 font-semibold sticky top-0 z-10">
+          <thead class="bg-surface-container text-text-muted font-semibold sticky top-0 z-10">
             <tr>
-              <th class="px-6 py-4 border-b border-gray-100">Tarea</th>
-              <th class="px-6 py-4 border-b border-gray-100">Relacionado con</th>
-              <th class="px-6 py-4 border-b border-gray-100 text-center">Estado</th>
-              <th class="px-6 py-4 border-b border-gray-100 text-center">Prioridad</th>
-              <th class="px-6 py-4 border-b border-gray-100">Vencimiento</th>
+              <th class="px-6 py-4 border-b border-border">Tarea</th>
+              <th class="px-6 py-4 border-b border-border">Relacionado con</th>
+              <th class="px-6 py-4 border-b border-border text-center">Estado</th>
+              <th class="px-6 py-4 border-b border-border text-center">Prioridad</th>
+              <th class="px-6 py-4 border-b border-border text-center">Vencimiento</th>
+              <th class="px-6 py-4 border-b border-border text-right">Acciones</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-50">
-            <tr v-for="task in filteredTasks" :key="task.id" class="hover:bg-gray-50/80 transition-colors group">
-              
+          <tbody class="divide-y divide-border">
+            <tr v-for="task in filteredTasks" :key="task.id" class="hover:bg-surface-container/60 transition-colors group">
+
               <!-- Tarea Título -->
               <td class="px-6 py-4">
-                <div class="font-medium" :class="{'text-text-secondary line-through': isCompleted(task.status), 'text-text-main': !isCompleted(task.status)}">
+                <div
+                  class="font-medium"
+                  :class="{'text-text-muted line-through': isCompleted(task.status), 'text-text-main': !isCompleted(task.status)}"
+                >
                   {{ task.title }}
                 </div>
               </td>
@@ -87,7 +87,7 @@
                       {{ task.leads?.full_name || 'Contacto privado' }}
                     </span>
                   </div>
-                  <div v-if="!task.deals && !task.deal_id && !task.leads && !task.lead_id" class="text-xs text-gray-400">
+                  <div v-if="!task.deals && !task.deal_id && !task.leads && !task.lead_id" class="text-xs text-text-muted">
                     Sin relación
                   </div>
                 </div>
@@ -95,32 +95,55 @@
 
               <!-- Estado -->
               <td class="px-6 py-4 text-center">
-                <span 
-                  class="px-3 py-1 text-xs font-semibold rounded-full inline-block"
-                  :class="getStatusClass(task.status)"
-                >
+                <BaseBadge :variant="getStatusVariant(task.status)">
                   {{ formatStatus(task.status) }}
-                </span>
+                </BaseBadge>
               </td>
 
               <!-- Prioridad -->
               <td class="px-6 py-4 text-center">
-                <span 
-                  class="px-3 py-1 text-xs font-semibold rounded-full inline-block"
-                  :class="getPriorityClass(task.priority)"
-                >
+                <BaseBadge :variant="getPriorityVariant(task.priority)">
                   {{ task.priority || 'Media' }}
-                </span>
+                </BaseBadge>
               </td>
 
               <!-- Due Date -->
               <td class="px-6 py-4">
-                <div 
+                <div
                   class="flex items-center gap-2 text-sm"
                   :class="getDueDateColor(task.due_date, task.status)"
                 >
                   <svg v-if="isPastDue(task.due_date) && !isCompleted(task.status)" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
                   <span>{{ formatDate(task.due_date) }}</span>
+                </div>
+              </td>
+
+              <!-- Acciones -->
+              <td class="px-6 py-4 text-right">
+                <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    @click="toggleTaskStatus(task)"
+                    class="p-1.5 rounded-md hover:bg-surface border border-transparent hover:border-border transition-colors"
+                    :class="isCompleted(task.status) ? 'text-text-muted hover:text-text-main' : 'text-success hover:bg-success/10 hover:border-success/20'"
+                    :title="isCompleted(task.status) ? 'Marcar pendiente' : 'Marcar completada'"
+                  >
+                    <svg v-if="isCompleted(task.status)" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.13 15.57a9 9 0 1 0 3.1-8.52L2.5 9"></path></svg>
+                    <svg v-else xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  </button>
+                  <button
+                    @click="editTask(task)"
+                    class="p-1.5 text-text-muted hover:text-primary rounded-md hover:bg-surface border border-transparent hover:border-border transition-colors"
+                    title="Editar tarea"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                  </button>
+                  <button
+                    @click="deleteTask(task.id)"
+                    class="p-1.5 text-text-muted hover:text-danger rounded-md hover:bg-surface border border-transparent hover:border-danger/20 transition-colors"
+                    title="Eliminar tarea"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                  </button>
                 </div>
               </td>
             </tr>
@@ -130,33 +153,33 @@
 
       <!-- Empty State -->
       <div v-else class="py-16 flex-1 flex items-center justify-center">
-        <OrbitEmptyState 
-          :title="searchQuery ? 'No hay resultados' : 'Estás al día'" 
+        <OrbitEmptyState
+          :title="searchQuery ? 'No hay resultados' : 'Estás al día'"
           :description="searchQuery ? 'Ninguna tarea coincide con tu búsqueda.' : 'No tienes tareas pendientes programadas en el sistema.'"
         />
       </div>
-    </div>
+    </BaseCard>
 
-    <!-- Modal Nueva Tarea -->
-    <OrbitModal v-model="showTaskModal" title="Nueva Tarea">
+    <!-- ── Modal Nueva Tarea ── -->
+    <OrbitModal v-model="showTaskModal" :title="newTask.id ? 'Editar Tarea' : 'Nueva Tarea'">
       <form @submit.prevent="saveTask" class="space-y-4">
-        <div v-if="taskError" class="bg-danger-bg text-danger p-3 rounded-lg text-sm border border-danger/10">
+        <div v-if="taskError" class="bg-danger-bg text-danger p-3 rounded-lg text-sm border border-danger/20">
           {{ taskError }}
         </div>
-        
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Título -->
           <div class="md:col-span-2">
             <label class="block text-xs font-semibold text-text-secondary uppercase mb-1.5" for="task-title">
               Título <span class="text-danger">*</span>
             </label>
-            <input 
+            <input
               v-model="newTask.title"
               id="task-title"
-              type="text" 
+              type="text"
               required
-              placeholder="Ej: Llamar a cliente para seguimiento" 
-              class="w-full px-3 py-2 bg-surface border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              placeholder="Ej: Llamar a cliente para seguimiento"
+              class="w-full px-3 py-2 bg-surface border border-border-strong rounded-lg text-sm text-text-main placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
             />
           </div>
 
@@ -165,12 +188,12 @@
             <label class="block text-xs font-semibold text-text-secondary uppercase mb-1.5" for="task-desc">
               Descripción
             </label>
-            <textarea 
+            <textarea
               v-model="newTask.description"
               id="task-desc"
               rows="3"
-              placeholder="Detalles adicionales de la tarea..." 
-              class="w-full px-3 py-2 bg-surface border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              placeholder="Detalles adicionales de la tarea..."
+              class="w-full px-3 py-2 bg-surface border border-border-strong rounded-lg text-sm text-text-main placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
             ></textarea>
           </div>
 
@@ -179,10 +202,10 @@
             <label class="block text-xs font-semibold text-text-secondary uppercase mb-1.5" for="task-priority">
               Prioridad
             </label>
-            <select 
+            <select
               v-model="newTask.priority"
               id="task-priority"
-              class="w-full px-3 py-2 bg-surface border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              class="w-full px-3 py-2 bg-surface border border-border-strong rounded-lg text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
             >
               <option value="Alta">Alta</option>
               <option value="Media">Media</option>
@@ -195,11 +218,11 @@
             <label class="block text-xs font-semibold text-text-secondary uppercase mb-1.5" for="task-due">
               Fecha Límite
             </label>
-            <input 
+            <input
               v-model="newTask.due_date"
               id="task-due"
-              type="date" 
-              class="w-full px-3 py-2 bg-surface border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              type="date"
+              class="w-full px-3 py-2 bg-surface border border-border-strong rounded-lg text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
             />
           </div>
 
@@ -208,10 +231,10 @@
             <label class="block text-xs font-semibold text-text-secondary uppercase mb-1.5" for="task-assignee">
               Asignado a
             </label>
-            <select 
+            <select
               v-model="newTask.assigned_to"
               id="task-assignee"
-              class="w-full px-3 py-2 bg-surface border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              class="w-full px-3 py-2 bg-surface border border-border-strong rounded-lg text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
             >
               <option value="">Seleccionar responsable...</option>
               <option v-for="profile in profiles" :key="profile.id" :value="profile.id">
@@ -225,25 +248,26 @@
             <label class="block text-xs font-semibold text-text-secondary uppercase mb-1.5" for="task-rel-type">
               Relacionado con
             </label>
-            <select 
+            <select
               v-model="newTask.related_type"
               id="task-rel-type"
-              class="w-full px-3 py-2 bg-surface border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              class="w-full px-3 py-2 bg-surface border border-border-strong rounded-lg text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
             >
+              <option value="none">Ninguno (Tarea suelta)</option>
               <option value="lead">Contacto (Lead)</option>
               <option value="deal">Negocio (Deal)</option>
             </select>
           </div>
 
           <!-- Relacionado con Registro -->
-          <div>
+          <div v-if="newTask.related_type !== 'none'">
             <label class="block text-xs font-semibold text-text-secondary uppercase mb-1.5" for="task-rel-id">
               Registro relacionado
             </label>
-            <select 
+            <select
               v-model="newTask.related_id"
               id="task-rel-id"
-              class="w-full px-3 py-2 bg-surface border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              class="w-full px-3 py-2 bg-surface border border-border-strong rounded-lg text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
             >
               <option value="">Seleccionar registro...</option>
               <option v-for="option in relatedOptions" :key="option.id" :value="option.id">
@@ -254,24 +278,31 @@
         </div>
 
         <!-- Botones -->
-        <div class="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-100">
-          <button 
-            type="button" 
-            @click="showTaskModal = false"
-            class="px-4 py-2 border border-border text-text-secondary hover:text-text-main rounded-lg text-sm font-medium transition-colors"
-          >
-            Cancelar
-          </button>
-          <button 
-            type="submit"
-            :disabled="savingTask"
-            class="bg-primary hover:bg-primary-variant btn-glow text-white px-5 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-50 flex items-center gap-2"
-          >
-            <span v-if="savingTask" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+        <div class="mt-6 flex justify-end gap-3 pt-4 border-t border-border">
+          <BaseButton variant="secondary" type="button" @click="showTaskModal = false">Cancelar</BaseButton>
+          <BaseButton type="submit" :loading="savingTask">
             {{ savingTask ? 'Guardando...' : 'Guardar' }}
-          </button>
+          </BaseButton>
         </div>
       </form>
+    </OrbitModal>
+
+    <!-- ── Modal Confirmar Eliminar ── -->
+    <OrbitModal v-model="showDeleteModal" title="Eliminar Tarea">
+      <div class="space-y-4">
+        <p class="text-sm text-text-secondary">
+          ¿Estás seguro que deseas eliminar esta tarea? Esta acción no se puede deshacer.
+        </p>
+        <div v-if="deleteError" class="bg-danger-bg text-danger p-3 rounded-lg text-sm border border-danger/20">
+          {{ deleteError }}
+        </div>
+        <div class="flex justify-end gap-3 pt-4 border-t border-border">
+          <BaseButton variant="secondary" @click="showDeleteModal = false">Cancelar</BaseButton>
+          <BaseButton variant="danger" :loading="deletingTask" @click="confirmDeleteTask">
+            {{ deletingTask ? 'Eliminando...' : 'Eliminar' }}
+          </BaseButton>
+        </div>
+      </div>
     </OrbitModal>
   </div>
 </template>
@@ -279,9 +310,11 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { supabase } from '../lib/supabase'
-import OrbitPageHeader from '../components/OrbitPageHeader.vue'
 import OrbitEmptyState from '../components/OrbitEmptyState.vue'
 import OrbitModal from '../components/OrbitModal.vue'
+import BaseCard from '../components/BaseCard.vue'
+import BaseBadge from '../components/BaseBadge.vue'
+import BaseButton from '../components/BaseButton.vue'
 
 const tasks = ref([])
 const loading = ref(true)
@@ -295,21 +328,37 @@ const taskError = ref(null)
 const profiles = ref([])
 const relatedOptions = ref([])
 
+const showDeleteModal = ref(false)
+const taskToDelete = ref(null)
+const deletingTask = ref(false)
+const deleteError = ref(null)
+
 const newTask = ref({
+  id: null,
   title: '',
   description: '',
   priority: 'Media',
   due_date: '',
   assigned_to: '',
-  related_type: 'lead',
+  related_type: 'none',
   related_id: ''
 })
 
-const getPriorityClass = (priority) => {
+// Mapea priority a variante de BaseBadge
+const getPriorityVariant = (priority) => {
   const norm = priority?.toLowerCase() || 'media'
-  if (norm === 'alta') return 'bg-red-100 text-red-700'
-  if (norm === 'baja') return 'bg-green-100 text-green-700'
-  return 'bg-yellow-100 text-yellow-700'
+  if (norm === 'alta') return 'danger'
+  if (norm === 'baja') return 'success'
+  return 'warning'
+}
+
+// Mapea status a variante de BaseBadge
+const getStatusVariant = (status) => {
+  const norm = status?.toLowerCase() || ''
+  if (norm.includes('pendiente')) return 'warning'
+  if (norm.includes('completad')) return 'success'
+  if (norm.includes('progres'))   return 'primary'
+  return 'muted'
 }
 
 const fetchProfiles = async () => {
@@ -333,47 +382,43 @@ const fetchRelatedOptions = async (type) => {
         .select('id, name:full_name')
         .order('full_name', { ascending: true })
       if (err) throw err
-      relatedOptions.value = (data || []).map(item => ({
-        id: item.id,
-        label: item.name
-      }))
+      relatedOptions.value = (data || []).map(item => ({ id: item.id, label: item.name }))
     } else if (type === 'deal') {
       const { data, error: err } = await supabase
         .from('deals')
         .select('id, name:title')
         .order('title', { ascending: true })
       if (err) throw err
-      relatedOptions.value = (data || []).map(item => ({
-        id: item.id,
-        label: item.name
-      }))
+      relatedOptions.value = (data || []).map(item => ({ id: item.id, label: item.name }))
     }
   } catch (err) {
     console.error('Error al cargar relacionados:', err)
   }
 }
 
-watch(() => newTask.value.related_type, async (newType) => {
-  newTask.value.related_id = ''
-  if (newType) {
+watch(() => newTask.value.related_type, async (newType, oldType) => {
+  if (oldType !== undefined && newType !== oldType) {
+    newTask.value.related_id = ''
+  }
+  if (newType && newType !== 'none') {
     await fetchRelatedOptions(newType)
   }
 })
 
 const openModal = async () => {
   newTask.value = {
+    id: null,
     title: '',
     description: '',
     priority: 'Media',
     due_date: '',
     assigned_to: '',
-    related_type: 'lead',
+    related_type: 'none',
     related_id: ''
   }
   taskError.value = null
   showTaskModal.value = true
   await fetchProfiles()
-  await fetchRelatedOptions(newTask.value.related_type)
 }
 
 const saveTask = async () => {
@@ -391,17 +436,26 @@ const saveTask = async () => {
       description: newTask.value.description ? newTask.value.description.trim() : null,
       priority: newTask.value.priority,
       due_date: newTask.value.due_date || null,
-      status: 'pendiente',
       assigned_to: newTask.value.assigned_to || null,
       lead_id: newTask.value.related_type === 'lead' ? (newTask.value.related_id || null) : null,
       deal_id: newTask.value.related_type === 'deal' ? (newTask.value.related_id || null) : null
     }
 
-    const { error: err } = await supabase
-      .from('tasks')
-      .insert([payload])
+    if (newTask.value.id) {
+      const { error: err } = await supabase
+        .from('tasks')
+        .update(payload)
+        .eq('id', newTask.value.id)
 
-    if (err) throw err
+      if (err) throw err
+    } else {
+      payload.status = 'pendiente'
+      const { error: err } = await supabase
+        .from('tasks')
+        .insert([payload])
+
+      if (err) throw err
+    }
 
     showTaskModal.value = false
     await fetchTasks()
@@ -413,32 +467,87 @@ const saveTask = async () => {
   }
 }
 
+const toggleTaskStatus = async (task) => {
+  const newStatus = isCompleted(task.status) ? 'pendiente' : 'completada'
+  try {
+    const { error: err } = await supabase.from('tasks').update({ status: newStatus }).eq('id', task.id)
+    if (err) throw err
+    task.status = newStatus
+  } catch (err) {
+    console.error('Error al actualizar estado:', err)
+    error.value = 'No se pudo actualizar el estado de la tarea.'
+  }
+}
+
+const editTask = async (task) => {
+  taskError.value = null
+  
+  let relType = 'none'
+  let relId = ''
+  if (task.lead_id) {
+    relType = 'lead'
+    relId = task.lead_id
+  } else if (task.deal_id) {
+    relType = 'deal'
+    relId = task.deal_id
+  }
+  
+  newTask.value = {
+    id: task.id,
+    title: task.title || '',
+    description: task.description || '',
+    priority: task.priority || 'Media',
+    due_date: task.due_date || '',
+    assigned_to: task.assigned_to || '',
+    related_type: relType,
+    related_id: relId
+  }
+  
+  await fetchProfiles()
+  if (relType !== 'none') {
+    await fetchRelatedOptions(relType)
+  }
+  
+  newTask.value.related_id = relId
+  showTaskModal.value = true
+}
+
+const deleteTask = (taskId) => {
+  taskToDelete.value = taskId
+  deleteError.value = null
+  showDeleteModal.value = true
+}
+
+const confirmDeleteTask = async () => {
+  if (!taskToDelete.value) return
+  deletingTask.value = true
+  deleteError.value = null
+  try {
+    const { error: err } = await supabase.from('tasks').delete().eq('id', taskToDelete.value)
+    if (err) throw err
+    showDeleteModal.value = false
+    await fetchTasks()
+  } catch (err) {
+    console.error('Error al eliminar:', err)
+    deleteError.value = 'Ocurrió un error al eliminar. ' + (err.message || '')
+  } finally {
+    deletingTask.value = false
+  }
+}
+
 // Filtrado Reactivo
 const filteredTasks = computed(() => {
   if (!searchQuery.value) return tasks.value
-  
   const query = searchQuery.value.toLowerCase()
-  return tasks.value.filter(task => {
-    return (
-      task.title?.toLowerCase().includes(query) ||
-      task.leads?.full_name?.toLowerCase().includes(query) ||
-      task.deals?.title?.toLowerCase().includes(query)
-    )
-  })
+  return tasks.value.filter(task =>
+    task.title?.toLowerCase().includes(query) ||
+    task.leads?.full_name?.toLowerCase().includes(query) ||
+    task.deals?.title?.toLowerCase().includes(query)
+  )
 })
 
-const isCompleted = (status) => {
-  return status?.toLowerCase() === 'completada' || status?.toLowerCase() === 'completado'
-}
-
-// Visual Helpers
-const getStatusClass = (status) => {
-  const norm = status?.toLowerCase() || ''
-  if (norm.includes('pendiente')) return 'bg-yellow-100 text-yellow-700'
-  if (norm.includes('completad')) return 'bg-green-100 text-green-700'
-  if (norm.includes('progres')) return 'bg-blue-100 text-blue-700'
-  return 'bg-gray-100 text-gray-700'
-}
+const isCompleted = (status) =>
+  status?.toLowerCase() === 'completada' || status?.toLowerCase() === 'completado'
 
 const formatStatus = (status) => {
   if (!status) return 'Desconocido'
@@ -473,9 +582,7 @@ const getDueDateColor = (dateString, status) => {
 const formatDate = (dateString) => {
   const date = parseDate(dateString)
   if (!date) return 'Sin fecha'
-  return new Intl.DateTimeFormat('es-CL', {
-    dateStyle: 'medium'
-  }).format(date)
+  return new Intl.DateTimeFormat('es-CL', { dateStyle: 'medium' }).format(date)
 }
 
 // Data Fetching
@@ -486,10 +593,10 @@ const fetchTasks = async () => {
     const { data, error: err } = await supabase
       .from('tasks')
       .select(`
-        id, 
-        title, 
-        due_date, 
-        status, 
+        id,
+        title,
+        due_date,
+        status,
         created_at,
         lead_id,
         deal_id,
@@ -497,11 +604,9 @@ const fetchTasks = async () => {
         leads(full_name),
         deals(title)
       `)
-      // Ordenar: primero las no completadas y por fecha de vencimiento más próxima
       .order('due_date', { ascending: true, nullsFirst: false })
-      
+
     if (err) throw err
-    
     tasks.value = data || []
   } catch (err) {
     console.error('Error al cargar tasks:', err)

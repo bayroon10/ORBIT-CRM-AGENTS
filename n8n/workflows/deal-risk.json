@@ -1,0 +1,164 @@
+{
+  "name": "🤖 Deal Risk Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 1 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "url": "https://kgrfhfwtcanthrymmvkb.supabase.co/rest/v1/deals?select=id,title,value,stage,expected_close,updated_at,probability,tasks(title,due_date,status),activities(type,created_at)&stage=not.in.(ganado,perdido)",
+        "options": {},
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY || 'YOUR_SUPABASE_SERVICE_ROLE_KEY' }}" },
+            { "name": "Authorization", "value": "Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY || 'YOUR_SUPABASE_SERVICE_ROLE_KEY' }}" }
+          ]
+        }
+      },
+      "id": "get-open-deals",
+      "name": "Get Open Deals",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [200, 0]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "body",
+        "options": {}
+      },
+      "id": "split-deals",
+      "name": "Split Deals",
+      "type": "n8n-nodes-base.itemLists",
+      "typeVersion": 3,
+      "position": [400, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={{ $env.GEMINI_API_KEY || 'YOUR_GEMINI_API_KEY' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ \"contents\": [ { \"parts\": [ { \"text\": \"Eres un analista B2B. Evalúa el riesgo de que este negocio NO se cierre basándote estrictamente en negligencia operativa (silencio, inactividad, tareas vencidas) o estancamiento de tiempo. Datos del deal:\\n- Título: {{ $json.title }}\\n- Etapa: {{ $json.stage }}\\n- Valor: {{ $json.value }}\\n- Probabilidad indicada: {{ $json.probability }}%\\n- Cierre esperado: {{ $json.expected_close }}\\n- Última actualización: {{ $json.updated_at }}\\n- Tareas asociadas: {{ JSON.stringify($json.tasks) }}\\n- Historial de Actividad: {{ JSON.stringify($json.activities) }}\\n\\nHoy es {{ $now }}. Responde SOLO con un JSON válido sin markdown:\\n{\\n  \\\"score\\\": <número 0 a 100 donde 100 es pérdida casi segura y 0 es muy seguro>,\\n  \\\"factors\\\": \\\"<1 oración breve indicando el factor de riesgo más urgente detectado o confirmando que el estado es sano>\\\"\\n}\\n\\nUmbrales: 0-39 (Bajo Riesgo, sano), 40-74 (Medio, necesita atención), 75-100 (Alto/Crítico, estancado o tareas clave vencidas).\" } ] } ], \"generationConfig\": {\"temperature\": 0.2,\"maxOutputTokens\": 500} }"
+      },
+      "id": "analyze-deal",
+      "name": "Analizar Riesgo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [600, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nlet text = '';\nif (response.candidates && response.candidates[0] && response.candidates[0].content) {\n  text = response.candidates[0].content.parts[0].text;\n}\n\n// Limpiar el texto por si Gemini agrega markdown\nconst cleaned = text.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n\nlet parsed;\ntry {\n  parsed = JSON.parse(cleaned);\n} catch(e) {\n  parsed = {\n    score: 50,\n    factors: 'No se pudo analizar el riesgo temporalmente debido a un error de parseo.'\n  };\n}\n\nreturn [{\n  json: {\n    id: $('Split Deals').item.json.id,\n    ai_risk_score: parsed.score,\n    ai_risk_factors: parsed.factors,\n    ai_analyzed_at: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "parse-gemini",
+      "name": "Parsear JSON IA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [800, 0]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://kgrfhfwtcanthrymmvkb.supabase.co/rest/v1/deals?id=eq.{{ $json.id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY || 'YOUR_SUPABASE_SERVICE_ROLE_KEY' }}" },
+            { "name": "Authorization", "value": "Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY || 'YOUR_SUPABASE_SERVICE_ROLE_KEY' }}" },
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "Prefer", "value": "return=minimal" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { ai_risk_score: $json.ai_risk_score, ai_risk_factors: $json.ai_risk_factors, ai_analyzed_at: $json.ai_analyzed_at } }}"
+      },
+      "id": "update-supabase",
+      "name": "Guardar Riesgo en Supabase",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1000, 0]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Open Deals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Open Deals": {
+      "main": [
+        [
+          {
+            "node": "Split Deals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Deals": {
+      "main": [
+        [
+          {
+            "node": "Analizar Riesgo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analizar Riesgo": {
+      "main": [
+        [
+          {
+            "node": "Parsear JSON IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parsear JSON IA": {
+      "main": [
+        [
+          {
+            "node": "Guardar Riesgo en Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false
+}

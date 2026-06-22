@@ -11,5 +11,13 @@ services:
       - "5678:5678"
     env_file:
       - .env.n8n
+    environment:
+      # Permite peticiones cross-origin desde el dev server de Vite.
+      # En producción, cambiar por la URL del frontend desplegado.
+      - N8N_CORS_ORIGIN=http://localhost:5173
+      - N8N_CORS_ALLOW_ALL=true
+      - N8N_RESPONSE_FORM_ALLOW_CORS=*
+      - N8N_ENFORCE_SETTINGS_FILE_FOR_WEBHOOK_CORS=true
+      - WEBHOOK_TUNNEL_URL=http://localhost:5678
     volumes:
       - ./.n8n-data:/home/node/.n8n

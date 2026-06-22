@@ -1,0 +1,258 @@
+{
+  "name": "Weekly Summary Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * 1"
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH metricas_7_dias AS (\n  SELECT (NOW() - INTERVAL '7 days') AS limite_fecha\n)\nSELECT \n  json_build_object(\n    'weekly_metrics', json_build_object(\n      'new_leads', (\n         SELECT COUNT(*)::int FROM leads CROSS JOIN metricas_7_dias \n         WHERE created_at >= limite_fecha\n      ),\n      'won_deals_count', (\n         SELECT COUNT(*)::int FROM deals CROSS JOIN metricas_7_dias \n         WHERE LOWER(stage) = 'ganado' AND stage_updated_at >= limite_fecha\n      ),\n      'won_deals_total_value', (\n         SELECT COALESCE(SUM(value), 0)::numeric FROM deals CROSS JOIN metricas_7_dias \n         WHERE LOWER(stage) = 'ganado' AND stage_updated_at >= limite_fecha\n      ),\n      'active_high_risk_deals', (\n         SELECT COUNT(*)::int FROM deals \n         WHERE ai_risk_level = 'High'\n      ),\n      'pending_critical_tasks', (\n         SELECT COUNT(*)::int FROM tasks \n         WHERE LOWER(status) != 'completada' AND priority = 'Alta'\n      )\n    ),\n    'generated_at', NOW()\n  ) AS payload;"
+      },
+      "id": "postgres-node",
+      "name": "Extraer Métricas SQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.2,
+      "position": [
+        200,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REEMPLAZAR_EN_UI",
+          "name": "Postgres (Supabase DB)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [],
+          "number": [],
+          "string": [
+            {
+              "value1": "={{ $json.payload.weekly_metrics.new_leads + $json.payload.weekly_metrics.won_deals_count + $json.payload.weekly_metrics.active_high_risk_deals }}",
+              "operation": "notEqual",
+              "value2": "0"
+            }
+          ]
+        }
+      },
+      "id": "if-empty-validation",
+      "name": "IF Validación Vacía",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "text",
+        "operation": "generate",
+        "prompt": "Eres el analista ejecutivo de IA de Orbit CRM. Redacta un reporte semanal en 2 párrafos cortos y directos basándote ESTRICTAMENTE en este JSON de métricas de la última semana: {{ $json.payload }}. \n\nReglas:\n- Tono profesional, ágil y al grano.\n- Usa 2 o 3 emojis como máximo.\n- Menciona siempre el valor financiero de los negocios ganados y si hay Deals en riesgo alto.\n- NUNCA inventes números ni datos que no estén en el JSON.",
+        "options": {}
+      },
+      "id": "gemini-node",
+      "name": "Redactar Resumen (Gemini)",
+      "type": "n8n-nodes-base.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        600,
+        0
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "REEMPLAZAR_EN_UI",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = $input.first().json.text || '';\nconst sanitized = text.replace(/```markdown/gi, '').replace(/```/g, '').trim();\nreturn { json: { text: sanitized } };"
+      },
+      "id": "sanitizer-node",
+      "name": "Sanitizar Markdown",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databaseOperations",
+        "operation": "insert",
+        "table": "activities",
+        "dataToSend": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "name": "type",
+              "value": "resumen_semanal"
+            },
+            {
+              "name": "description",
+              "value": "={{ $json.text }}"
+            }
+          ]
+        }
+      },
+      "id": "supabase-node",
+      "name": "Guardar en Activities",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        0
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "REEMPLAZAR_EN_UI",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "error-trigger",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -200
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databaseOperations",
+        "operation": "insert",
+        "table": "automation_logs",
+        "dataToSend": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "name": "status",
+              "value": "failed"
+            },
+            {
+              "name": "error_message",
+              "value": "={{ $json.execution.error.message }}"
+            },
+            {
+              "name": "trigger_event",
+              "value": "weekly_summary"
+            }
+          ]
+        }
+      },
+      "id": "error-log",
+      "name": "Loggear Error",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        200,
+        -200
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "REEMPLAZAR_EN_UI",
+          "name": "Supabase account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extraer Métricas SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extraer Métricas SQL": {
+      "main": [
+        [
+          {
+            "node": "IF Validación Vacía",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Validación Vacía": {
+      "main": [
+        [
+          {
+            "node": "Redactar Resumen (Gemini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redactar Resumen (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "Sanitizar Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sanitizar Markdown": {
+      "main": [
+        [
+          {
+            "node": "Guardar en Activities",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Loggear Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

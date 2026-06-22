@@ -1,22 +1,22 @@
 <template>
   <div class="flex flex-col h-full relative overflow-x-hidden">
     <!-- Hero Header -->
-    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 via-blue-950 to-gray-900 px-8 py-10 mb-8 shadow-xl shrink-0">
-      <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle, #ffffff 1px, transparent 1px); background-size: 24px 24px;"></div>
-      <div class="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-10" style="background: radial-gradient(circle, #3b82f6, transparent 70%);"></div>
+    <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 px-8 py-10 mb-8 border border-primary/20 shadow-lg shrink-0">
+      <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle, #818cf8 1px, transparent 1px); background-size: 24px 24px;"></div>
+      <div class="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-15" style="background: radial-gradient(circle, #6366f1, transparent 70%);"></div>
       <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div class="flex items-center gap-2 mb-3">
-            <span class="px-2.5 py-1 bg-blue-500/20 text-blue-300 text-xs font-semibold rounded-full border border-blue-500/30 uppercase tracking-wide">Resultados</span>
+            <BaseBadge variant="primary">Resultados</BaseBadge>
           </div>
-          <h1 class="text-3xl font-bold text-white mb-2 tracking-tight">Ventas</h1>
-          <p class="text-gray-400 text-sm">Monitoreo de ingresos y transacciones comerciales cerradas.</p>
+          <h1 class="text-3xl font-bold text-text-main mb-2 tracking-tight">Ventas</h1>
+          <p class="text-text-secondary text-sm">Monitoreo de ingresos y transacciones comerciales cerradas.</p>
         </div>
       </div>
     </div>
 
     <!-- Error State -->
-    <div v-if="error" class="mb-6 bg-danger-bg text-danger p-4 rounded-lg text-sm border border-danger/10 shrink-0">
+    <div v-if="error" class="mb-6 bg-danger-bg text-danger p-4 rounded-lg text-sm border border-danger/20 shrink-0">
       {{ error }}
     </div>
 
@@ -26,29 +26,25 @@
         title="Total Ventas" 
         :value="totalSales" 
         icon="briefcase" 
-        color="purple" 
       />
       <OrbitMetricCard 
         title="Monto Total" 
         :value="formatCurrency(totalAmount)" 
         icon="document" 
-        color="blue" 
       />
       <OrbitMetricCard 
         title="Ticket Promedio" 
         :value="formatCurrency(averageTicket)" 
         icon="chart" 
-        color="orange" 
       />
       <OrbitMetricCard 
         title="Tasa de Cierre" 
         :value="winRate + '%'" 
         icon="users" 
-        color="green" 
       />
     </div>
 
-    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 overflow-hidden">
+    <BaseCard :padded="false" class="flex flex-col flex-1 overflow-hidden">
       <!-- Loading State -->
       <div v-if="loading" class="p-8 flex flex-col items-center justify-center space-y-4 flex-1">
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -66,18 +62,18 @@
       <!-- Data Table -->
       <div v-else class="overflow-y-auto flex-1">
         <table class="w-full text-left text-sm">
-          <thead class="bg-[#f0edef] text-text-secondary font-semibold sticky top-0 z-10">
+          <thead class="bg-surface-container text-text-muted font-semibold sticky top-0 z-10">
             <tr>
-              <th class="px-6 py-4 border-b border-gray-100 uppercase tracking-wider text-xs">Negocio</th>
-              <th class="px-6 py-4 border-b border-gray-100 uppercase tracking-wider text-xs">Cliente (Lead)</th>
-              <th class="px-6 py-4 border-b border-gray-100 uppercase tracking-wider text-xs text-right">Monto</th>
-              <th class="px-6 py-4 border-b border-gray-100 uppercase tracking-wider text-xs">Fecha cierre</th>
-              <th class="px-6 py-4 border-b border-gray-100 uppercase tracking-wider text-xs">Vendedor</th>
-              <th class="px-6 py-4 border-b border-gray-100 uppercase tracking-wider text-xs text-center">Acciones</th>
+              <th class="px-6 py-4 border-b border-border uppercase tracking-wider text-xs">Negocio</th>
+              <th class="px-6 py-4 border-b border-border uppercase tracking-wider text-xs">Cliente (Lead)</th>
+              <th class="px-6 py-4 border-b border-border uppercase tracking-wider text-xs text-right">Monto</th>
+              <th class="px-6 py-4 border-b border-border uppercase tracking-wider text-xs">Fecha cierre</th>
+              <th class="px-6 py-4 border-b border-border uppercase tracking-wider text-xs">Vendedor</th>
+              <th class="px-6 py-4 border-b border-border uppercase tracking-wider text-xs text-center">Acciones</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-50">
-            <tr v-for="sale in sales" :key="sale.id" class="hover:bg-primary/5 transition-colors group">
+          <tbody class="divide-y divide-border">
+            <tr v-for="sale in sales" :key="sale.id" class="hover:bg-surface-container/60 transition-colors group">
               <td class="px-6 py-4">
                 <div class="font-medium text-text-main">{{ sale.title }}</div>
                 <div class="text-xs text-text-secondary mt-0.5">ID: #TX-{{ String(sale.id).padStart(4, '0') }}</div>
@@ -86,7 +82,7 @@
                 {{ sale.leads?.full_name || 'Sin contacto' }}
               </td>
               <td class="px-6 py-4 text-right">
-                <span class="font-semibold text-success bg-success/10 px-2.5 py-1 rounded-full text-xs">
+                <span class="font-semibold text-success bg-success/10 border border-success/20 px-2.5 py-1 rounded-full text-xs">
                   {{ formatCurrency(sale.value) }}
                 </span>
               </td>
@@ -95,14 +91,14 @@
               </td>
               <td class="px-6 py-4">
                 <div class="flex items-center gap-2">
-                  <div class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold">
+                  <div class="w-6 h-6 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center text-primary-300 text-[10px] font-bold">
                     {{ getInitials(sale.profiles?.full_name) }}
                   </div>
                   <span class="text-text-main font-medium">{{ sale.profiles?.full_name || 'Usuario' }}</span>
                 </div>
               </td>
               <td class="px-6 py-4 text-center">
-                <button class="p-2 hover:bg-surface rounded-full transition-colors text-border group-hover:text-text-secondary opacity-0 group-hover:opacity-100">
+                <button class="p-2 hover:bg-surface rounded-full transition-colors text-text-muted group-hover:text-text-main opacity-0 group-hover:opacity-100">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
                 </button>
               </td>
@@ -110,7 +106,7 @@
           </tbody>
         </table>
       </div>
-    </div>
+    </BaseCard>
   </div>
 </template>
 
@@ -119,6 +115,8 @@ import { ref, computed, onMounted } from 'vue'
 import { supabase } from '../lib/supabase'
 import OrbitEmptyState from '../components/OrbitEmptyState.vue'
 import OrbitMetricCard from '../components/OrbitMetricCard.vue'
+import BaseCard from '../components/BaseCard.vue'
+import BaseBadge from '../components/BaseBadge.vue'
 
 const sales = ref([])
 const loading = ref(true)
@@ -134,7 +132,7 @@ const fetchSales = async () => {
     const { data, error: err } = await supabase
       .from('deals')
       .select('*, leads(full_name), profiles(full_name)')
-      .eq('stage', 'Ganado')
+      .eq('stage', 'ganado')
       .order('updated_at', { ascending: false })
       
     if (err) throw err

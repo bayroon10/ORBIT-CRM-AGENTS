@@ -1,0 +1,159 @@
+{
+  "name": "Lead Qualifier Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead-qualifier",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "0ce52c4b-9500-478a-90a8-64da62740605",
+      "name": "Lead Creado",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "69e50d8d-3a67-46ab-a410-0639bc9ecd86"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "76428fac-4630-400b-a248-e07bf9853598",
+      "name": "Preparar datos",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key= ",
+        "options": {}
+      },
+      "id": "f647d4b7-66b8-4719-89ef-f6255223bb1b",
+      "name": "Analizar con Gemini",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst text = response.candidates[0].content.parts[0].text;\n\n// Limpiar el texto por si Gemini agrega markdown\nconst cleaned = text.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n\nlet parsed;\ntry {\n  parsed = JSON.parse(cleaned);\n} catch(e) {\n  // Fallback si el JSON falla\n  parsed = {\n    score: 50,\n    category: 'Warm',\n    summary: 'Análisis no disponible temporalmente.',\n    next_step: 'Contactar al lead para obtener más información.'\n  };\n}\n\nreturn [{\n  json: {\n    lead_id: $('Preparar datos').first().json.lead_id,\n    ai_score: parsed.score,\n    ai_category: parsed.category,\n    ai_summary: parsed.summary,\n    ai_next_step: parsed.next_step,\n    ai_analyzed_at: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "4c06aa1a-8996-462f-b128-790da6049f8a",
+      "name": "Parsear JSON de IA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        600,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://kgrfhfwtcanthrymmvkb.supabase.co/rest/v1/leads?id=eq.{{ $json.lead_id }}",
+        "options": {}
+      },
+      "id": "ca9364e6-0e75-4e0a-ae66-0aefec0bbd7d",
+      "name": "Guardar en Supabase",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        800,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{ \"ok\": true, \"score\": {{ $('Parsear JSON de IA').first().json.ai_score }} }",
+        "options": {}
+      },
+      "id": "34395486-7cf4-4065-ae4d-8d960147db33",
+      "name": "Confirmar",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        0
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Lead Creado": {
+      "main": [
+        [
+          {
+            "node": "Preparar datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar datos": {
+      "main": [
+        [
+          {
+            "node": "Analizar con Gemini",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analizar con Gemini": {
+      "main": [
+        [
+          {
+            "node": "Parsear JSON de IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parsear JSON de IA": {
+      "main": [
+        [
+          {
+            "node": "Guardar en Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar en Supabase": {
+      "main": [
+        [
+          {
+            "node": "Confirmar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ed632d3b-2bb8-46e0-834c-c3261fd54e29",
+  "meta": {
+    "instanceId": "2bb80cd071df62a9fb180cbb85a9d2f9d0446308b05af4ee387661eb2b78c7fa"
+  },
+  "id": "FD6A1BHVkaDFx0vI",
+  "tags": []
+}

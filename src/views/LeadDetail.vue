@@ -8,28 +8,47 @@
 
     <!-- Error State -->
     <div v-else-if="error" class="flex flex-col items-center justify-center p-8">
-      <div class="bg-danger-bg text-danger p-4 rounded-lg text-sm border border-danger/10 text-center w-full max-w-md">
+      <div class="bg-danger-bg text-danger p-4 rounded-lg text-sm border border-danger/20 text-center w-full max-w-md">
         <p class="mb-4">{{ error }}</p>
-        <button @click="router.push('/leads')" class="bg-danger hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+        <BaseButton @click="router.push('/leads')" variant="danger">
           Volver a Leads
-        </button>
+        </BaseButton>
       </div>
     </div>
 
     <!-- Data State -->
     <template v-else-if="lead">
-      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 via-blue-950 to-gray-900 px-8 py-10 mb-8 shadow-xl shrink-0">
-        <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle, #ffffff 1px, transparent 1px); background-size: 24px 24px;"></div>
-        <div class="absolute -top-20 -right-20 w-80 h-80 rounded-full opacity-10 bg-blue-400 blur-3xl"></div>
+      <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 px-8 py-10 mb-8 shadow-lg border border-primary/20 shrink-0">
+        <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle, #818cf8 1px, transparent 1px); background-size: 24px 24px;"></div>
+        <div class="absolute -top-20 -right-20 w-80 h-80 rounded-full opacity-15 bg-primary blur-3xl"></div>
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 class="text-3xl font-bold text-white">{{ lead.full_name }}</h1>
-            <p class="text-blue-200 mt-1">Prospecto · {{ lead.companies?.name || 'Sin empresa' }}</p>
+            <h1 class="text-3xl font-bold text-text-main">{{ lead.full_name }}</h1>
+            <p class="text-text-secondary mt-1">Prospecto · {{ lead.companies?.name || 'Sin empresa' }}</p>
           </div>
-          <div class="flex space-x-3">
+          <div class="flex space-x-3 items-center">
+            <BaseButton
+              v-if="lead.ai_score === null"
+              variant="primary"
+              @click="showAiModal = true"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.347a3.5 3.5 0 00-1.035 2.475V19a2 2 0 01-2 2h-1.5a2 2 0 01-2-2v-.189a3.5 3.5 0 00-1.036-2.474l-.347-.347z"/>
+              </svg>
+              Calificar con IA
+            </BaseButton>
+            <BaseButton
+              v-else
+              variant="secondary"
+              size="sm"
+              @click="showAiModal = true"
+            >
+              Re-analizar
+            </BaseButton>
+
             <button 
               @click="router.push('/leads')"
-              class="px-4 py-2 border border-gray-600 rounded-lg text-sm font-medium text-white hover:bg-white/10 transition-colors"
+              class="px-4 py-2 border border-border rounded-lg text-sm font-medium text-text-secondary hover:text-text-main hover:bg-surface-card transition-colors"
             >
               &larr; Volver
             </button>
@@ -39,13 +58,19 @@
 
       <div class="flex-1 overflow-y-auto pb-8">
         
+        <!-- Banners IA -->
+        <div v-if="aiSuccess" class="mx-6 mb-6 p-4 rounded-lg bg-success/10 border border-success/20 text-success text-sm font-medium animate-fadeInUp">
+          ✓ Análisis completado. Actualizando datos...
+        </div>
+        <div v-if="aiError" class="mx-6 mb-6 p-4 rounded-lg bg-danger/10 border border-danger/20 text-danger text-sm font-medium animate-fadeInUp">
+          ⚠ {{ aiError }}
+        </div>
+
         <!-- Panel Sales Intelligence — siempre visible cuando hay lead -->
         <div class="mx-6 mb-6 animate-fadeInUp">
 
           <!-- ESTADO: análisis disponible -->
-          <div v-if="lead.ai_score"
-               class="rounded-2xl border border-border bg-white shadow-sm overflow-hidden">
-
+          <BaseCard v-if="lead.ai_score" :padded="false" class="overflow-hidden">
             <!-- Banda de acento superior con color dinámico según score -->
             <div class="h-1 w-full"
                  :class="getScoreAccentClass(lead.ai_score)"></div>
@@ -56,7 +81,7 @@
                 <div class="flex items-center gap-2">
                   <!-- Ícono sparkle / IA -->
                   <div class="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <svg class="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <svg class="w-4 h-4 text-primary-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                       <path stroke-linecap="round" stroke-linejoin="round"
                         d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.347a3.5 3.5 0 00-1.035 2.475V19a2 2 0 01-2 2h-1.5a2 2 0 01-2-2v-.189a3.5 3.5 0 00-1.036-2.474l-.347-.347z"/>
                     </svg>
@@ -64,7 +89,7 @@
                   <span class="text-sm font-semibold text-text-main">Sales Intelligence</span>
                 </div>
                 <!-- Fecha de análisis -->
-                <div class="flex items-center gap-1.5 text-xs text-text-secondary">
+                <div class="flex items-center gap-1.5 text-xs text-text-muted">
                   <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="10"/>
                     <polyline points="12 6 12 12 16 14"/>
@@ -131,34 +156,33 @@
 
               <!-- Perfil del Prospecto (ex Resumen) -->
               <div class="mb-4">
-                <p class="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1.5">
+                <p class="text-xs font-semibold text-text-muted uppercase tracking-wider mb-1.5">
                   Perfil del Prospecto
                 </p>
                 <p class="text-sm text-text-main leading-relaxed">{{ lead.ai_summary }}</p>
               </div>
 
               <!-- Acción Recomendada (ex Próximo paso) -->
-              <div class="rounded-xl bg-primary/5 border border-primary/15 px-4 py-3">
+              <div class="rounded-xl bg-primary/10 border border-primary/20 px-4 py-3">
                 <div class="flex items-center gap-2 mb-1">
                   <!-- Check icon -->
-                  <svg class="w-3.5 h-3.5 text-primary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <svg class="w-3.5 h-3.5 text-primary-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <polyline points="20 6 9 17 4 12"/>
                   </svg>
-                  <p class="text-xs font-semibold text-primary uppercase tracking-wider">
+                  <p class="text-xs font-semibold text-primary-300 uppercase tracking-wider">
                     Acción Recomendada
                   </p>
                 </div>
                 <p class="text-sm font-medium text-text-main pl-5">{{ lead.ai_next_step }}</p>
               </div>
             </div>
-          </div>
+          </BaseCard>
 
           <!-- ESTADO: sin análisis disponible -->
-          <div v-else
-               class="rounded-2xl border border-border bg-white shadow-sm p-5">
+          <BaseCard v-else class="p-5">
             <div class="flex items-center gap-4">
-              <div class="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center shrink-0">
-                <svg class="w-6 h-6 text-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <div class="w-12 h-12 rounded-xl bg-surface-card flex items-center justify-center shrink-0 border border-border">
+                <svg class="w-6 h-6 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                   <path stroke-linecap="round" stroke-linejoin="round"
                     d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.347a3.5 3.5 0 00-1.035 2.475V19a2 2 0 01-2 2h-1.5a2 2 0 01-2-2v-.189a3.5 3.5 0 00-1.036-2.474l-.347-.347z"/>
                 </svg>
@@ -171,82 +195,82 @@
                 </p>
               </div>
             </div>
-          </div>
+          </BaseCard>
 
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 px-6">
           
           <!-- COLUMNA IZQUIERDA -->
           <div class="lg:col-span-1">
-            <div class="bg-white rounded-xl border border-border p-6 shadow-sm">
+            <BaseCard>
               <h2 class="font-semibold text-text-main mb-4 text-lg">Información del Prospecto</h2>
               <div class="space-y-0">
                 
                 <div class="flex items-center gap-3 py-3 border-b border-border">
-                  <div class="w-8 flex justify-center text-text-secondary">✉️</div>
+                  <div class="w-8 flex justify-center text-text-muted">✉️</div>
                   <div>
-                    <div class="text-xs text-text-secondary uppercase tracking-wide">Email</div>
+                    <div class="text-xs text-text-muted uppercase tracking-wide">Email</div>
                     <div class="text-sm text-text-main font-medium">{{ lead.email || '—' }}</div>
                   </div>
                 </div>
 
                 <div class="flex items-center gap-3 py-3 border-b border-border">
-                  <div class="w-8 flex justify-center text-text-secondary">📞</div>
+                  <div class="w-8 flex justify-center text-text-muted">📞</div>
                   <div>
-                    <div class="text-xs text-text-secondary uppercase tracking-wide">Teléfono</div>
+                    <div class="text-xs text-text-muted uppercase tracking-wide">Teléfono</div>
                     <div class="text-sm text-text-main font-medium">{{ lead.phone || '—' }}</div>
                   </div>
                 </div>
 
                 <div class="flex items-center gap-3 py-3 border-b border-border">
-                  <div class="w-8 flex justify-center text-text-secondary">📌</div>
+                  <div class="w-8 flex justify-center text-text-muted">📌</div>
                   <div>
-                    <div class="text-xs text-text-secondary uppercase tracking-wide">Estado</div>
+                    <div class="text-xs text-text-muted uppercase tracking-wide">Estado</div>
                     <div class="mt-0.5">
-                      <span class="px-2 py-0.5 text-xs font-medium rounded-full" :class="getStatusClass(lead.status)">
+                      <BaseBadge :variant="getStatusVariant(lead.status)">
                         {{ lead.status ? lead.status.charAt(0).toUpperCase() + lead.status.slice(1) : '—' }}
-                      </span>
+                      </BaseBadge>
                     </div>
                   </div>
                 </div>
 
                 <div class="flex items-center gap-3 py-3 border-b border-border">
-                  <div class="w-8 flex justify-center text-text-secondary">🔗</div>
+                  <div class="w-8 flex justify-center text-text-muted">🔗</div>
                   <div>
-                    <div class="text-xs text-text-secondary uppercase tracking-wide">Fuente</div>
+                    <div class="text-xs text-text-muted uppercase tracking-wide">Fuente</div>
                     <div class="text-sm text-text-main font-medium">{{ lead.source || '—' }}</div>
                   </div>
                 </div>
 
                 <div class="flex items-center gap-3 py-3 border-b border-border">
-                  <div class="w-8 flex justify-center text-text-secondary">🏢</div>
+                  <div class="w-8 flex justify-center text-text-muted">🏢</div>
                   <div>
-                    <div class="text-xs text-text-secondary uppercase tracking-wide">Empresa</div>
+                    <div class="text-xs text-text-muted uppercase tracking-wide">Empresa</div>
                     <div class="text-sm text-text-main font-medium">{{ lead.companies?.name || '—' }}</div>
                   </div>
                 </div>
 
                 <div class="flex items-center gap-3 py-3">
-                  <div class="w-8 flex justify-center text-text-secondary">📅</div>
+                  <div class="w-8 flex justify-center text-text-muted">📅</div>
                   <div>
-                    <div class="text-xs text-text-secondary uppercase tracking-wide">Registrado</div>
+                    <div class="text-xs text-text-muted uppercase tracking-wide">Registrado</div>
                     <div class="text-sm text-text-main font-medium">{{ formatDate(lead.created_at) }}</div>
                   </div>
                 </div>
 
               </div>
-            </div>
+            </BaseCard>
           </div>
 
           <!-- COLUMNA DERECHA -->
           <div class="lg:col-span-2 space-y-6">
             
             <!-- Negocios Asociados -->
-            <div class="bg-white rounded-xl border border-border p-6 shadow-sm">
+            <BaseCard>
               <div class="flex justify-between items-center mb-4">
                 <h2 class="font-semibold text-text-main text-lg">Negocios</h2>
-                <span class="bg-gray-100 text-text-secondary px-2.5 py-0.5 rounded-full text-xs font-medium">{{ deals.length }}</span>
+                <span class="bg-surface-card border border-border text-text-secondary px-2.5 py-0.5 rounded-full text-xs font-medium">{{ deals.length }}</span>
               </div>
               
               <div v-if="deals.length === 0" class="text-center py-4">
@@ -254,26 +278,26 @@
               </div>
               
               <div v-else class="space-y-0">
-                <div v-for="deal in deals" :key="deal.id" class="flex justify-between items-center py-3 border-b border-border last:border-0 hover:bg-gray-50 transition-colors -mx-6 px-6">
+                <div v-for="deal in deals" :key="deal.id" class="flex justify-between items-center py-3 border-b border-border last:border-0 hover:bg-surface-card transition-colors -mx-6 px-6">
                   <div>
                     <div class="font-medium text-sm text-text-main">{{ deal.title }}</div>
                     <div v-if="deal.expected_close" class="text-xs text-text-secondary mt-0.5">Cierre: {{ formatDate(deal.expected_close) }}</div>
                   </div>
                   <div class="flex items-center gap-4">
-                    <span class="px-2 py-0.5 text-xs font-medium rounded-full" :class="getDealStageClass(deal.stage)">
+                    <BaseBadge :variant="getDealStageVariant(deal.stage)">
                       {{ deal.stage ? deal.stage.charAt(0).toUpperCase() + deal.stage.slice(1) : '' }}
-                    </span>
+                    </BaseBadge>
                     <span class="text-sm font-semibold text-success">{{ formatCurrency(deal.value) }}</span>
                   </div>
                 </div>
               </div>
-            </div>
+            </BaseCard>
 
             <!-- Feed de Actividad -->
-            <div class="bg-white rounded-xl border border-border p-6 shadow-sm">
+            <BaseCard>
               <div class="flex justify-between items-center mb-4">
                 <h2 class="font-semibold text-text-main text-lg">Actividad Reciente</h2>
-                <span class="bg-gray-100 text-text-secondary px-2.5 py-0.5 rounded-full text-xs font-medium">{{ activities.length }}</span>
+                <span class="bg-surface-card border border-border text-text-secondary px-2.5 py-0.5 rounded-full text-xs font-medium">{{ activities.length }}</span>
               </div>
 
               <div v-if="activities.length === 0" class="text-center py-4">
@@ -282,7 +306,7 @@
 
               <div v-else class="space-y-0">
                 <div v-for="activity in activities" :key="activity.id" class="flex gap-4 py-4 border-b border-border last:border-0">
-                  <div class="w-8 h-8 rounded-full bg-surface border border-border flex items-center justify-center shrink-0 shadow-sm text-sm">
+                  <div class="w-8 h-8 rounded-full bg-surface-container border border-border flex items-center justify-center shrink-0 shadow-sm text-sm">
                     {{ getActivityIcon(activity.type) }}
                   </div>
                   <div class="flex-1 pt-1">
@@ -291,12 +315,30 @@
                   </div>
                 </div>
               </div>
-            </div>
+            </BaseCard>
 
           </div>
 
         </div>
       </div>
+
+      <!-- Modal de confirmación IA -->
+      <OrbitModal v-model="showAiModal" title="Calificar lead con IA">
+        <p class="text-sm text-text-secondary">
+          Se analizará el perfil de <span class="font-semibold text-text-main">{{ lead.full_name }}</span> usando Gemini para generar un score, categoría y recomendaciones de seguimiento. ¿Continuar?
+        </p>
+        
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <BaseButton variant="ghost" @click="showAiModal = false" :disabled="aiLoading">
+              Cancelar
+            </BaseButton>
+            <BaseButton variant="primary" @click="qualifyLead" :loading="aiLoading">
+              {{ aiLoading ? 'Analizando...' : 'Calificar' }}
+            </BaseButton>
+          </div>
+        </template>
+      </OrbitModal>
     </template>
   </div>
 </template>
@@ -305,7 +347,10 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { supabase } from '../lib/supabase'
-import OrbitPageHeader from '../components/OrbitPageHeader.vue'
+import BaseCard from '../components/BaseCard.vue'
+import BaseBadge from '../components/BaseBadge.vue'
+import BaseButton from '../components/BaseButton.vue'
+import OrbitModal from '../components/OrbitModal.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -315,6 +360,96 @@ const activities = ref([])
 const deals = ref([])
 const loading = ref(true)
 const error = ref(null)
+
+const showAiModal = ref(false)
+const aiLoading = ref(false)
+const aiSuccess = ref(false)
+const aiError = ref('')
+
+const qualifyLead = async () => {
+  aiLoading.value = true
+  aiError.value = ''
+
+  if (!import.meta.env.VITE_N8N_WEBHOOK_URL) {
+    showAiModal.value = false
+    aiLoading.value = false
+    aiError.value = 'URL del webhook de n8n no está configurada.'
+    setTimeout(() => {
+      aiError.value = ''
+    }, 6000)
+    return
+  }
+  
+  let url = import.meta.env.VITE_N8N_WEBHOOK_URL
+  
+  try {
+    let response
+    try {
+      response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Webhook-Secret': import.meta.env.VITE_N8N_WEBHOOK_SECRET
+        },
+        body: JSON.stringify({ lead_id: lead.value.id })
+      })
+    } catch (netErr) {
+      if (url.includes('/webhook/')) {
+        const testUrl = url.replace('/webhook/', '/webhook-test/')
+        console.warn(`[n8n Fallback]: Falló webhook producción. Intentando webhook de pruebas: ${testUrl}`)
+        response = await fetch(testUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Webhook-Secret': import.meta.env.VITE_N8N_WEBHOOK_SECRET
+          },
+          body: JSON.stringify({ lead_id: lead.value.id })
+        })
+      } else {
+        throw netErr
+      }
+    }
+
+    if (!response || !response.ok) {
+      throw new Error(`El servidor de automatización devolvió un código de error: ${response ? response.status : 'vacío'}`)
+    }
+
+    const text = await response.text()
+    const data = text ? JSON.parse(text) : {}
+    
+    if (data.error) {
+      throw new Error(data.error)
+    }
+
+    showAiModal.value = false
+    aiSuccess.value = true
+    
+    setTimeout(() => {
+      aiSuccess.value = false
+    }, 4000)
+
+    await fetchLead()
+
+  } catch (err) {
+    showAiModal.value = false
+    if (
+      err.name === 'TypeError' || 
+      err.message.includes('Failed to fetch') || 
+      err.message.includes('fetch') || 
+      err.message.includes('código de error: vacío') ||
+      err.message.includes('empty')
+    ) {
+      aiError.value = 'El flujo de automatización n8n no devolvió ninguna respuesta (ERR_EMPTY_RESPONSE). Asegúrate de activar el flujo en la UI de n8n.'
+    } else {
+      aiError.value = err.message || 'Error al calificar el lead'
+    }
+    setTimeout(() => {
+      aiError.value = ''
+    }, 6000)
+  } finally {
+    aiLoading.value = false
+  }
+}
 
 const fetchLead = async () => {
   loading.value = true
@@ -378,44 +513,44 @@ const formatCurrency = (value) => {
   }).format(value)
 }
 
-const getStatusClass = (status) => {
+const getStatusVariant = (status) => {
   const map = {
-    'nuevo': 'bg-blue-100 text-blue-700',
-    'contactado': 'bg-yellow-100 text-yellow-700',
-    'calificado': 'bg-green-100 text-green-700'
+    'nuevo': 'primary',
+    'contactado': 'warning',
+    'calificado': 'success'
   }
-  return map[status] || 'bg-gray-100 text-gray-700'
+  return map[status] || 'default'
 }
 
 // --- Helpers del panel Sales Intelligence ---
 
 // Color de acento superior de la card (banda de 4px)
 const getScoreAccentClass = (score) => {
-  if (score >= 70) return 'bg-gradient-to-r from-emerald-400 to-emerald-600'
-  if (score >= 40) return 'bg-gradient-to-r from-yellow-400 to-orange-400'
-  return 'bg-gradient-to-r from-red-400 to-red-600'
+  if (score >= 70) return 'bg-gradient-to-r from-emerald-500 to-emerald-700'
+  if (score >= 40) return 'bg-gradient-to-r from-yellow-500 to-orange-500'
+  return 'bg-gradient-to-r from-red-500 to-red-700'
 }
 
 // Fondo + borde de la caja del score hero
 const getScoreBgClass = (score) => {
-  if (score >= 70) return 'bg-emerald-50 border-emerald-200'
-  if (score >= 40) return 'bg-yellow-50 border-yellow-200'
-  return 'bg-red-50 border-red-200'
+  if (score >= 70) return 'bg-success/10 border-success/20'
+  if (score >= 40) return 'bg-warning/10 border-warning/20'
+  return 'bg-danger/10 border-danger/20'
 }
 
 // Color del número y etiqueta dentro del score hero
 const getScoreTextClass = (score) => {
-  if (score >= 70) return 'text-emerald-700'
-  if (score >= 40) return 'text-yellow-700'
-  return 'text-red-700'
+  if (score >= 70) return 'text-success'
+  if (score >= 40) return 'text-warning'
+  return 'text-danger'
 }
 
 // Badge de categoría (Hot / Warm / Cold)
 const getCategoryClass = (category) => {
   const map = {
-    'Hot':  'bg-red-50 text-red-700 border-red-200',
-    'Warm': 'bg-yellow-50 text-yellow-700 border-yellow-200',
-    'Cold': 'bg-blue-50 text-blue-700 border-blue-200'
+    'Hot':  'bg-danger/10 text-danger border-danger/20',
+    'Warm': 'bg-warning/10 text-warning border-warning/20',
+    'Cold': 'bg-primary/10 text-primary-300 border-primary/20'
   }
   return map[category] || 'bg-surface-container text-text-secondary border-border'
 }
@@ -441,15 +576,15 @@ const getActivityIcon = (type) => {
   return '💬'
 }
 
-const getDealStageClass = (stage) => {
+const getDealStageVariant = (stage) => {
   const map = {
-    'prospecto': 'bg-blue-100 text-blue-700',
-    'cotizado': 'bg-yellow-100 text-yellow-700',
-    'negociando': 'bg-orange-100 text-orange-700',
-    'ganado': 'bg-green-100 text-green-700',
-    'perdido': 'bg-red-100 text-red-700'
+    'prospecto': 'primary',
+    'cotizado': 'warning',
+    'negociando': 'danger', // usando danger para naranja/negociando si no hay orange
+    'ganado': 'success',
+    'perdido': 'danger'
   }
-  return map[stage] || 'bg-gray-100 text-gray-700'
+  return map[stage] || 'default'
 }
 
 onMounted(() => {

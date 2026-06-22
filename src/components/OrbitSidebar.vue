@@ -1,10 +1,10 @@
 <template>
-  <aside class="w-64 bg-gray-950 text-white flex flex-col h-full shrink-0 shadow-xl">
+  <aside class="w-64 bg-surface-container border-r border-border text-text-main flex flex-col h-full shrink-0">
 
     <!-- SECCIÓN 1 — Logo/Brand -->
-    <div class="h-16 flex items-center gap-3 px-5 border-b border-white/10">
-      <div class="bg-blue-500/20 rounded-lg p-1.5">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <div class="h-16 flex items-center gap-3 px-5 border-b border-border shrink-0">
+      <div class="bg-primary/20 rounded-lg p-1.5">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-primary-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="3" width="7" height="7"></rect>
           <rect x="14" y="3" width="7" height="7"></rect>
           <rect x="14" y="14" width="7" height="7"></rect>
@@ -12,7 +12,7 @@
         </svg>
       </div>
       <span class="text-lg">
-        <span class="font-bold text-white">Orbit</span><span class="font-light text-blue-400">CRM</span>
+        <span class="font-bold text-text-main">Orbit</span><span class="font-light text-primary-300">CRM</span>
       </span>
     </div>
 
@@ -20,14 +20,14 @@
     <nav class="flex-1 overflow-y-auto px-3 py-4">
 
       <!-- GRUPO: PRINCIPAL -->
-      <div class="text-[10px] font-semibold text-gray-500 uppercase tracking-widest px-3 mb-2">
+      <div class="text-2xs font-semibold text-text-muted uppercase tracking-widest px-3 mb-2">
         Principal
       </div>
 
       <router-link
         to="/"
-        class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 text-gray-400 hover:text-white hover:bg-white/8"
-        active-class="text-white bg-blue-600/20 font-medium"
+        class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 text-text-secondary hover:text-text-main hover:bg-surface-card"
+        active-class="text-text-main bg-primary/15 font-medium"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="3" width="7" height="7"></rect>
@@ -40,8 +40,8 @@
 
       <router-link
         to="/leads"
-        class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 text-gray-400 hover:text-white hover:bg-white/8"
-        active-class="text-white bg-blue-600/20 font-medium"
+        class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 text-text-secondary hover:text-text-main hover:bg-surface-card"
+        active-class="text-text-main bg-primary/15 font-medium"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -52,8 +52,8 @@
 
       <router-link
         to="/deals"
-        class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 text-gray-400 hover:text-white hover:bg-white/8"
-        active-class="text-white bg-blue-600/20 font-medium"
+        class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 text-text-secondary hover:text-text-main hover:bg-surface-card"
+        active-class="text-text-main bg-primary/15 font-medium"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
@@ -64,8 +64,8 @@
 
       <router-link
         to="/companies"
-        class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 text-gray-400 hover:text-white hover:bg-white/8"
-        active-class="text-white bg-blue-600/20 font-medium"
+        class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 text-text-secondary hover:text-text-main hover:bg-surface-card"
+        active-class="text-text-main bg-primary/15 font-medium"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
@@ -75,14 +75,14 @@
       </router-link>
 
       <!-- GRUPO: GESTIÓN -->
-      <div class="text-[10px] font-semibold text-gray-500 uppercase tracking-widest px-3 mt-6 mb-2">
+      <div class="text-2xs font-semibold text-text-muted uppercase tracking-widest px-3 mt-6 mb-2">
         Gestión
       </div>
 
       <router-link
         to="/tasks"
-        class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 text-gray-400 hover:text-white hover:bg-white/8"
-        active-class="text-white bg-blue-600/20 font-medium"
+        class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 text-text-secondary hover:text-text-main hover:bg-surface-card"
+        active-class="text-text-main bg-primary/15 font-medium"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="9 11 12 14 22 4"></polyline>
@@ -93,23 +93,22 @@
 
       <router-link
         to="/quotes"
-        class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 text-gray-400 hover:text-white hover:bg-white/8"
-        active-class="text-white bg-blue-600/20 font-medium"
+        class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 text-text-secondary hover:text-text-main hover:bg-surface-card"
+        active-class="text-text-main bg-primary/15 font-medium"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
           <polyline points="14 2 14 8 20 8"></polyline>
           <line x1="16" y1="13" x2="8" y2="13"></line>
           <line x1="16" y1="17" x2="8" y2="17"></line>
-          <polyline points="10 9 9 9 8 9"></polyline>
         </svg>
         <span>Cotizaciones</span>
       </router-link>
 
       <router-link
         to="/sales"
-        class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 text-gray-400 hover:text-white hover:bg-white/8"
-        active-class="text-white bg-blue-600/20 font-medium"
+        class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 text-text-secondary hover:text-text-main hover:bg-surface-card"
+        active-class="text-text-main bg-primary/15 font-medium"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
@@ -120,8 +119,8 @@
 
       <router-link
         to="/activity"
-        class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 text-gray-400 hover:text-white hover:bg-white/8"
-        active-class="text-white bg-blue-600/20 font-medium"
+        class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 text-text-secondary hover:text-text-main hover:bg-surface-card"
+        active-class="text-text-main bg-primary/15 font-medium"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"></circle>
@@ -130,14 +129,39 @@
         <span>Actividad</span>
       </router-link>
 
+      <router-link
+        v-if="isAdmin"
+        to="/settings/providers"
+        class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 text-text-secondary hover:text-text-main hover:bg-surface-card"
+        active-class="text-text-main bg-primary/15 font-medium"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+        <span>Integraciones</span>
+      </router-link>
+
+      <router-link
+        v-if="isAdmin"
+        to="/automation-center"
+        class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 text-text-secondary hover:text-text-main hover:bg-surface-card"
+        active-class="text-text-main bg-primary/15 font-medium"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line>
+        </svg>
+        <span>Automatizaciones</span>
+      </router-link>
+
     </nav>
 
     <!-- SECCIÓN 3 — Footer -->
-    <div class="border-t border-white/10 px-3 py-4">
+    <div class="border-t border-border px-3 py-4 shrink-0">
       <router-link
+        v-if="isAdmin"
         to="/settings"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 text-gray-400 hover:text-white hover:bg-white/8"
-        active-class="text-white bg-blue-600/20 font-medium"
+        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 text-text-secondary hover:text-text-main hover:bg-surface-card"
+        active-class="text-text-main bg-primary/15 font-medium"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"></circle>
@@ -150,8 +174,20 @@
   </aside>
 </template>
 
+<script setup>
+import { ref, onMounted } from 'vue'
+import { supabase } from '../lib/supabase'
+
+const isAdmin = ref(false)
+
+onMounted(async () => {
+  const { data: { session } } = await supabase.auth.getSession()
+  const role = session?.user?.user_metadata?.role
+  isAdmin.value = role === 'admin' || role === 'superadmin'
+})
+</script>
+
 <style scoped>
-/* Dot indicador activo animado */
 .router-link-active .active-dot {
   animation: pulse-dot 2s ease infinite;
 }

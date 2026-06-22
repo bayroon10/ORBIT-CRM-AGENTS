@@ -7,62 +7,48 @@ Vue 3 (Composition API, `<script setup>`), Vue Router 4, Vite 5, Tailwind CSS 3,
 ## Commands
 
 ```sh
-npm run dev      # Vite dev server
-npm run build    # Vite production build
+npm run dev      # Vite dev server (port 5173)
+npm run build    # Vite production build (requires .env with 4 vars)
 npm run preview  # Preview production build
 ```
 
-No lint, format, typecheck, or test commands exist.
+No lint/format/typecheck. Playwright in devDependencies but no test runner config — ad-hoc QA scripts in `qa-scripts/` (Node .mjs/.cjs files hitting Supabase directly).
 
-## Project structure
+## Conventions
 
-```
-src/
-  main.js            # Entry: createApp + router
-  lib/supabase.js    # Supabase client (reads VITE_SUPABASE_* from .env)
-  router/index.js    # Routes + auth guard (supabase.auth.getSession)
-  layouts/           # AppLayout (sidebar + header + router-view), AuthLayout (centered)
-  views/             # 14 pages (Login, Dashboard, Leads, LeadDetail, Deals, DealDetail,
-                     # Companies, Tasks, Quotes, QuoteForm, Sales, Activity, Settings, SettingsUsers)
-  components/        # OrbitSidebar, OrbitHeader, OrbitPageHeader, OrbitMetricCard, OrbitEmptyState, OrbitModal
-  styles/index.css   # @tailwind base/components/utilities
-database/            # SQL backups (schema/, seed/, policies/, workflows/) — live DB is on Supabase
-orbit-design-system/ # Design assets from Stitch (HTML mockups, screenshots, audit)
-```
-
-## Key conventions
-
-- `@` alias → `./src` (configured in vite.config.js)
-- UI text is **Spanish**. `index.html` has `lang="es"`
-- Format locale: `es-CL` (Chile) — used in `Intl.DateTimeFormat` and `Intl.NumberFormat`
-- Components prefixed `Orbit*`, PascalCase, single-file `.vue`
-- Props via `defineProps` (no TS, no prop type imports)
-- Import supabase as `import { supabase } from '../lib/supabase'` per-view (no composable wrapper)
-- All routes under `AppLayout` have `meta: { requiresAuth: true }`
-- Login uses `supabase.auth.signInWithPassword`, with open-redirect sanitization on `redirect` param
-- Logout calls `supabase.auth.signOut()` then `router.push({ name: 'Login' })`
-- Route names match view PascalCase: `'Login'`, `'Dashboard'`, `'Leads'`, `'LeadDetail'`, etc.
-- Sidebar uses `<router-link>` with `active-class` for active nav state
-- GSAP used for page transitions (`AppLayout` `<Transition>` with `gsap.fromTo`) and dashboard metric counter animations
-- `OrbitModal`: `v-model` controlled, uses `Teleport` + `Transition` for backdrop/modal
-- 404 catch-all (`/:pathMatch(.*)*`) redirects to `{ name: 'Dashboard' }`
-- Tailwind colors defined in `tailwind.config.js`: `primary`, `surface`, `text`, `danger`, `success`, `border`
-
-## View state patterns
-
-Every view follows: `loading → error → empty → data`:
-- `loading` ref → skeleton/spinner shown while fetching
-- `error` ref → danger banner above content
-- `OrbitEmptyState` component when data is empty
-- `OrbitPageHeader` component with optional `#actions` slot for buttons
+- `@` alias → `./src`
+- UI text **Spanish**, locale `es-CL`
+- Components PascalCase, `.vue` SFCs, `defineProps` with plain JS
+- Supabase: `import { supabase } from '../lib/supabase'`
+- Route names match view PascalCase (e.g. `'LeadDetail'`)
+- Admin-only routes use `meta: { requiresAdmin: true }` — RBAC checks `user_metadata.role` in guard. Checking both `'admin'` and `'superadmin'`.
+- 404 catch-all → `{ name: 'Dashboard' }`
+- `.env` requires 4 vars: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_N8N_WEBHOOK_URL`, `VITE_N8N_WEBHOOK_SECRET`
+- GSAP: `await nextTick()` before `gsap.fromTo` after reactive DOM inserts (feed rows in Activity.vue, metric counters)
+- Tailwind semantic colors: `primary`, `surface`, `text`, `danger`, `success`, `border`, `warning`
+- View pattern: `loading` ref → spinner, `error` ref → danger banner, `OrbitEmptyState` when empty, `OrbitPageHeader` with optional `#actions` slot
 
 ## Supabase
 
-- Project: `kgrfhfwtcanthrymmvkb`
-- Auth: email/password only
-- Tables: `profiles`, `companies`, `leads`, `deals`, `tasks`, `activities`
-- RLS: admins see all; sellers manage own leads/deals; tasks scoped to assigned user
-- Profile auto-created via trigger on `auth.users` insert
-- `.env` requires `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY`
-- `database/` is local SQL backups only (schema, seed, RLS policies); schema/seed/policy changes go against live Supabase
-- `database/workflows/` contains an n8n workflow export (external automation, not part of the Vue app)
+Project `kgrfhfwtcanthrymmvkb`. Auth: email/password. Tables: `profiles`, `companies`, `leads`, `deals`, `tasks`, `activities`, `provider_settings`, `automations`, `automation_logs`.
+RLS: admins see all; sellers manage own leads/deals; tasks scoped to assigned user. Profile auto-created via trigger on `auth.users` insert.
+
+Realtime subscriptions (2):
+1. `Activity.vue`: `postgres_changes` on `activities` (feed prepend + GSAP animation). Requires `ALTER TABLE activities REPLICA IDENTITY FULL;` and `ALTER PUBLICATION supabase_realtime ADD TABLE activities;`
+2. `useRealtimeAlerts` composable: `postgres_changes` on `leads` (INSERT, `ai_score >= 70` → toast via `OrbitToastContainer`)
+
+## n8n
+
+- Docker Compose (`docker-compose up -d`), image `n8nio/n8n:1.45.1`, port 5678
+- `.env.n8n` from `.env.n8n.example`. CORS configured for `http://localhost:5173` (Vite dev server)
+- Secrets (Gemini API Key, Supabase Service Role Key) go in n8n UI Credentials, never in `.env.n8n`
+- **Read `SKILL_N8N.md` before modifying workflows** — critical rules: `maxOutputTokens: 2000` for Gemini 2.5 Flash, `service_role` key for Supabase mutations (anon blocked by RLS), `=` prefix for n8n expressions, `typeVersion` differences on Set nodes
+
+## Reference
+
+- `ARCHITECTURE.md` — system overview, data model, AI lead scoring pipeline, design system details
+- `SKILL_N8N.md` — n8n workflow creation rules and production lessons
+
+## CI/CD
+
+`.github/workflows/ci.yml` — `npm ci` + `npm run build` on push/PR to `main`. Placeholder env vars. No deploy step.

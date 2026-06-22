@@ -1,77 +1,70 @@
-# 🚀 Orbit CRM
+# Orbit CRM
 
-> CRM operativo moderno para equipos de ventas B2B — construido con Vue 3 + Supabase
+> AI-powered CRM for sales teams — lead scoring with Gemini 2.5 Flash, real-time activity feed, no-code automations via n8n. Built for LATAM.
 
-![Vue.js](https://img.shields.io/badge/Vue.js-3.x-4FC08D?style=flat-square&logo=vue.js&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-5.x-646CFF?style=flat-square&logo=vite&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.x-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
-![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?style=flat-square&logo=supabase&logoColor=white)
-![GSAP](https://img.shields.io/badge/GSAP-3.15-88CE02?style=flat-square&logo=greensock&logoColor=white)
-![JavaScript](https://img.shields.io/badge/JavaScript-ES2022-F7DF1E?style=flat-square&logo=javascript&logoColor=black)
+![CI](https://github.com/placeholder-repo/workflows/CI/badge.svg) ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg) ![Vue 3](https://img.shields.io/badge/Vue-3-success) ![Supabase](https://img.shields.io/badge/Supabase-Realtime-green)
 
-![Dashboard Orbit CRM](./stitch-design-package/screens/panel_de_control.png)
+## What makes Orbit different
 
-## ¿Qué es Orbit CRM?
+- 🤖 **AI Lead Scoring** — Gemini 2.5 Flash scores every lead 1-10 with category (Hot/Warm/Cold) and recommended next action
+- ⚡ **Real-time activity feed** — Supabase Realtime, zero polling
+- 🔄 **No-code automations** — n8n visual workflow builder, pre-built Lead Qualifier and Follow-up Agent
+- 🔒 **RLS on every table** — row-level security, `service_role` only in n8n (never in the frontend)
+- 🎨 **Custom design system** — GSAP animations, Orbit components, dark theme
 
-Sistema CRM operativo completo para equipos de ventas, con gestión de leads,
-pipeline de negocios en kanban, cotizaciones, directorio de empresas, tareas
-y registro de actividad. Construido sobre Vue 3 puro con Supabase como backend
-completo (autenticación, PostgreSQL y RLS por roles). Diseñado para escalar hacia
-automatización con n8n y agentes de IA en futuras versiones.
+## Stack
 
-## Módulos
+Vue 3 · Vite · Tailwind CSS · Supabase (Postgres + Auth + RLS) · n8n · Google Gemini API · GSAP
 
-| Módulo | Descripción | Estado |
-|--------|-------------|--------|
-| 🎯 Dashboard | Métricas en tiempo real con animaciones GSAP | ✅ Producción |
-| 👥 Leads | Gestión completa con modal de creación y vista detalle | ✅ Producción |
-| 💼 Deals | Kanban de 5 columnas con drag visual y modal | ✅ Producción |
-| 🏢 Companies | Directorio con panel lateral deslizante | ✅ Producción |
-| ✅ Tasks | Lista con modal Nueva Tarea y badges de prioridad | ✅ Producción |
-| 📄 Quotes | Pipeline de cotizaciones con estados | ✅ Producción |
-| 📊 Sales | KPIs de ventas cerradas con métricas | ✅ Producción |
-| ⚙️ Settings | Configuración general y gestión de usuarios | ✅ Producción |
+## Quick Start
 
-## Stack tecnológico
-
-| Tecnología | Uso | Versión |
-|-----------|-----|---------|
-| Vue 3 + Composition API | Framework reactivo con `<script setup>` | 3.x |
-| Vue Router 4 | SPA routing con auth guards | 4.x |
-| Vite | Build tool y dev server | 5.x |
-| Tailwind CSS | Utility-first con design tokens custom | 3.x |
-| Supabase | Auth + PostgreSQL + RLS + Realtime | Latest |
-| GSAP | Animaciones de entrada y transiciones | 3.15 |
-| Inter Font | Tipografía del sistema de diseño | — |
-
-## Arquitectura
-
-```
-src/
-├── lib/           # Cliente Supabase configurado
-├── router/        # Rutas + auth guard global
-├── layouts/       # AppLayout (sidebar+header) y AuthLayout
-├── views/         # 14 vistas del CRM
-├── components/    # Componentes Orbit* reutilizables
-└── styles/        # Tailwind base + animaciones globales GSAP
-```
-
-### Componentes reutilizables
-
-*   **OrbitModal** — Modal con Teleport, backdrop blur y transición
-*   **OrbitMetricCard** — KPI card con ícono dinámico y efecto card-3d
-*   **OrbitSidebar** — Navegación lateral con secciones y estado activo
-*   **OrbitHeader** — Header con iniciales del usuario y breadcrumb
-*   **OrbitEmptyState** — Estado vacío consistente entre vistas
-
-## Ejecutar n8n localmente con Docker
-
-Orbit CRM usa **n8n** como motor de automatización para la funcionalidad *Agent as a Service*. Para asegurar consistencia y reproducibilidad, n8n se orquesta mediante Docker Compose:
-
-1. Crea el archivo de configuración `.env.n8n` usando `.env.n8n.example` como plantilla.
-2. Asegúrate de no tener otro n8n corriendo en el puerto 5678.
-3. Ejecuta el contenedor en segundo plano:
+1. Clone the repository:
+   ```sh
+   git clone https://github.com/your-username/orbit-crm.git
+   cd orbit-crm
+   ```
+2. Install dependencies:
+   ```sh
+   npm install
+   ```
+3. Set up environment variables:
+   ```sh
+   cp .env.example .env
+   # Edit .env with your Supabase and n8n credentials
+   ```
+4. Start n8n automation via Docker:
    ```sh
    docker-compose up -d
    ```
-4. Accede a n8n en `http://localhost:5678` y configura tus credenciales.
+5. Run the Vite development server:
+   ```sh
+   npm run dev
+   ```
+
+## Architecture
+
+```text
+  Browser (Vue 3 + Vite)
+       │  anon key + RLS
+       ▼
+  Supabase (Postgres + Auth + Realtime)
+       │  service_role key (ONLY in n8n)
+       ▼
+  n8n (Docker) ──► Gemini 2.5 Flash API
+       │
+       ▼
+  automation_logs (Supabase)
+```
+
+## Environment Variables
+
+| Variable | Description | Public/Secret |
+|----------|-------------|---------------|
+| `VITE_SUPABASE_URL` | The URL to your Supabase project | Public |
+| `VITE_SUPABASE_ANON_KEY` | Supabase Anon Key for the frontend | Public |
+| `VITE_N8N_WEBHOOK_URL` | URL for the n8n webhook (e.g., http://localhost:5678/webhook/lead-qualifier) | Public |
+| `VITE_N8N_WEBHOOK_SECRET` | Secret token used to authenticate n8n requests | Secret |
+
+## License
+
+MIT
