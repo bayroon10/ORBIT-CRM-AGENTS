@@ -1,164 +1,444 @@
-{
-  "name": "🤖 Deal Risk Agent",
-  "nodes": [
-    {
-      "parameters": {
-        "rule": {
-          "interval": [
+[
+  {
+    "name": "🤖 Deal Risk Agent",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "0 1 * * *"
+              }
+            ]
+          }
+        },
+        "id": "schedule-trigger",
+        "name": "Schedule Trigger",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          0,
+          100
+        ]
+      },
+      {
+        "parameters": {
+          "values": {
+            "string": [
+              {
+                "name": "automation_id",
+                "value": "c621c63b-8f48-45b1-b255-f7a1b5d6d03c"
+              },
+              {
+                "name": "run_date",
+                "value": "={{ new Date().toISOString() }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "cfg-inicial-deal-risk",
+        "name": "Configuracion Inicial",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 1,
+        "position": [
+          220,
+          100
+        ]
+      },
+      {
+        "parameters": {
+          "url": "https://kgrfhfwtcanthrymmvkb.supabase.co/rest/v1/deals?select=id,title,value,stage,expected_close,updated_at,probability,tasks(title,due_date,status),activities(type,created_at)&stage=not.in.(ganado,perdido)",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "={{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Authorization",
+                "value": "=Bearer {{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Accept",
+                "value": "application/json"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "get-open-deals",
+        "name": "Get Open Deals",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [
+          440,
+          100
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "number": [
+              {
+                "value1": "={{ Array.isArray($json) ? $json.length : ($json.body ? $json.body.length : 0) }}",
+                "operation": "larger",
+                "value2": 0
+              }
+            ]
+          }
+        },
+        "id": "if-deals-exist",
+        "name": "IF Hay Deals Activos",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 1,
+        "position": [
+          660,
+          100
+        ]
+      },
+      {
+        "parameters": {
+          "values": {
+            "string": [
+              {
+                "name": "status",
+                "value": "skipped"
+              },
+              {
+                "name": "message",
+                "value": "No hay deals activos para analizar hoy."
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "no-deals-noop",
+        "name": "Sin Deals Activos",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 1,
+        "position": [
+          880,
+          280
+        ]
+      },
+      {
+        "parameters": {
+          "batchSize": 1,
+          "options": {}
+        },
+        "id": "split-in-batches",
+        "name": "Loop Sobre Deals",
+        "type": "n8n-nodes-base.splitInBatches",
+        "typeVersion": 2,
+        "position": [
+          880,
+          100
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={{ $credentials.googlePalmApi.apiKey }}",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "{\"contents\":[{\"parts\":[{\"text\":\"Eres un analista B2B experto en ventas. Tu tarea es evaluar el riesgo de que este negocio NO se cierre.\\n\\nRAZONA paso a paso siguiendo este Chain-of-Thought:\\n1. INACTIVIDAD: ¿Cuántos días pasaron desde la última actualización? ¿Hay silencio operativo?\\n2. TAREAS: ¿Hay tareas vencidas o sin completar críticas? ¿Cuántas y cuáles?\\n3. ACTIVIDAD: ¿El historial de actividades muestra compromiso reciente del cliente?\\n4. TIEMPO: ¿El cierre esperado ya pasó o está próximo sin avances claros?\\n5. CONCLUSIÓN: Con base en los 4 puntos anteriores, determina el nivel de riesgo.\\n\\nDatos del deal:\\n- Título: {{ $json.title }}\\n- Etapa: {{ $json.stage }}\\n- Valor: {{ $json.value }}\\n- Probabilidad: {{ $json.probability }}%\\n- Cierre esperado: {{ $json.expected_close }}\\n- Última actualización: {{ $json.updated_at }}\\n- Tareas: {{ JSON.stringify($json.tasks) }}\\n- Actividades: {{ JSON.stringify($json.activities) }}\\n\\nHoy es {{ $now }}.\\n\\nCRÍTICO: Responde ÚNICAMENTE con este JSON plano, sin bloques markdown, sin texto extra:\\n{\\\"score\\\": <0-100, donde 100=pérdida casi segura>, \\\"factors\\\": \\\"<1 oración: factor de riesgo más urgente o confirmación de estado sano>\\\", \\\"risk_level\\\": \\\"<Low|Medium|High|Critical>\\\"}\\n\\nUmbrales: 0-39=Low, 40-64=Medium, 65-84=High, 85-100=Critical.\"}]}],\"generationConfig\":{\"temperature\":0.1,\"maxOutputTokens\":2000,\"responseMimeType\":\"application/json\"}}",
+          "options": {}
+        },
+        "id": "analyze-deal",
+        "name": "Analizar Riesgo CoT",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [
+          1100,
+          100
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const response = $input.first().json;\nconst automationId = $('Configuracion Inicial').first().json.automation_id;\nconst deal = $('Loop Sobre Deals').item.json;\n\n// Extraer texto de la respuesta de Gemini\nlet text = '';\ntry {\n  text = response.candidates[0].content.parts[0].text;\n} catch(e) {\n  throw new Error('Estructura de respuesta Gemini inesperada: ' + JSON.stringify(response).substring(0, 200));\n}\n\n// Limpiar bloques markdown si Gemini los añade a pesar de responseMimeType\nconst cleaned = text\n  .replace(/```json\\n?/gi, '')\n  .replace(/```\\n?/g, '')\n  .trim();\n\n// Parsear JSON con fallback robusto\nlet parsed;\ntry {\n  parsed = JSON.parse(cleaned);\n} catch(e) {\n  // Intentar extraer JSON embebido en texto\n  const jsonMatch = cleaned.match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) {\n    try { parsed = JSON.parse(jsonMatch[0]); } catch(e2) { parsed = null; }\n  }\n}\n\nif (!parsed) {\n  parsed = {\n    score: 50,\n    factors: 'No se pudo analizar el riesgo. Verificar respuesta de Gemini.',\n    risk_level: 'Medium'\n  };\n}\n\n// Sanitizar y clampar valores\nconst score = Math.min(100, Math.max(0, parseInt(parsed.score) || 50));\nconst validLevels = ['Low', 'Medium', 'High', 'Critical'];\nconst riskLevel = validLevels.includes(parsed.risk_level) ? parsed.risk_level : (\n  score >= 85 ? 'Critical' : score >= 65 ? 'High' : score >= 40 ? 'Medium' : 'Low'\n);\n\nreturn [{\n  json: {\n    automation_id: automationId,\n    deal_id: deal.id,\n    deal_title: deal.title,\n    ai_risk_score: score,\n    ai_risk_factors: (parsed.factors || '').substring(0, 500),\n    ai_risk_level: riskLevel,\n    ai_analyzed_at: new Date().toISOString()\n  }\n}];"
+        },
+        "id": "parse-gemini",
+        "name": "Parsear JSON IA",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1320,
+          100
+        ]
+      },
+      {
+        "parameters": {
+          "method": "PATCH",
+          "url": "=https://kgrfhfwtcanthrymmvkb.supabase.co/rest/v1/deals?id=eq.{{ $json.deal_id }}",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "={{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Authorization",
+                "value": "=Bearer {{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "return=minimal"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ { ai_risk_score: $json.ai_risk_score, ai_risk_factors: $json.ai_risk_factors, ai_risk_level: $json.ai_risk_level, ai_analyzed_at: $json.ai_analyzed_at } }}",
+          "options": {}
+        },
+        "id": "update-supabase",
+        "name": "Guardar Riesgo en Supabase",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [
+          1540,
+          100
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://kgrfhfwtcanthrymmvkb.supabase.co/rest/v1/automation_logs",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "={{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Authorization",
+                "value": "=Bearer {{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "return=minimal"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"automation_id\": \"{{ $('Parsear JSON IA').first().json.automation_id }}\",\n  \"status\": \"success\",\n  \"trigger_event\": \"daily_risk_scan\",\n  \"payload\": {\n    \"deal_id\": \"{{ $('Parsear JSON IA').first().json.deal_id }}\",\n    \"deal_title\": \"{{ $('Parsear JSON IA').first().json.deal_title.replace(/\"/g, \"'\") }}\",\n    \"ai_risk_score\": {{ $('Parsear JSON IA').first().json.ai_risk_score }},\n    \"ai_risk_level\": \"{{ $('Parsear JSON IA').first().json.ai_risk_level }}\"\n  }\n}",
+          "options": {}
+        },
+        "id": "log-exito-deal",
+        "name": "Loggear Exito Deal",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [
+          1760,
+          100
+        ],
+        "continueOnFail": false
+      },
+      {
+        "parameters": {},
+        "id": "error-trigger-deal",
+        "name": "Error Trigger",
+        "type": "n8n-nodes-base.errorTrigger",
+        "typeVersion": 1,
+        "position": [
+          0,
+          -200
+        ],
+        "continueOnFail": false
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://kgrfhfwtcanthrymmvkb.supabase.co/rest/v1/automation_logs",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "={{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Authorization",
+                "value": "=Bearer {{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "return=minimal"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"automation_id\": \"c621c63b-8f48-45b1-b255-f7a1b5d6d03c\",\n  \"status\": \"failed\",\n  \"trigger_event\": \"daily_risk_scan\",\n  \"error_message\": \"{{ $json.execution.error.message }}\",\n  \"payload\": {\n    \"workflow\": \"{{ $json.workflow.name }}\",\n    \"last_node\": \"{{ $json.execution.lastNodeExecuted }}\"\n  }\n}",
+          "options": {}
+        },
+        "id": "log-error-deal",
+        "name": "Loggear Error Deal",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [
+          220,
+          -200
+        ],
+        "continueOnFail": false
+      }
+    ],
+    "connections": {
+      "Schedule Trigger": {
+        "main": [
+          [
             {
-              "field": "cronExpression",
-              "expression": "0 1 * * *"
+              "node": "Configuracion Inicial",
+              "type": "main",
+              "index": 0
             }
           ]
-        }
+        ]
       },
-      "id": "schedule-trigger",
-      "name": "Schedule Trigger",
-      "type": "n8n-nodes-base.scheduleTrigger",
-      "typeVersion": 1.1,
-      "position": [0, 0]
-    },
-    {
-      "parameters": {
-        "url": "https://kgrfhfwtcanthrymmvkb.supabase.co/rest/v1/deals?select=id,title,value,stage,expected_close,updated_at,probability,tasks(title,due_date,status),activities(type,created_at)&stage=not.in.(ganado,perdido)",
-        "options": {},
-        "headerParameters": {
-          "parameters": [
-            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY || 'YOUR_SUPABASE_SERVICE_ROLE_KEY' }}" },
-            { "name": "Authorization", "value": "Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY || 'YOUR_SUPABASE_SERVICE_ROLE_KEY' }}" }
+      "Configuracion Inicial": {
+        "main": [
+          [
+            {
+              "node": "Get Open Deals",
+              "type": "main",
+              "index": 0
+            }
           ]
-        }
+        ]
       },
-      "id": "get-open-deals",
-      "name": "Get Open Deals",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [200, 0]
-    },
-    {
-      "parameters": {
-        "fieldToSplitOut": "body",
-        "options": {}
-      },
-      "id": "split-deals",
-      "name": "Split Deals",
-      "type": "n8n-nodes-base.itemLists",
-      "typeVersion": 3,
-      "position": [400, 0]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={{ $env.GEMINI_API_KEY || 'YOUR_GEMINI_API_KEY' }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            { "name": "Content-Type", "value": "application/json" }
+      "Get Open Deals": {
+        "main": [
+          [
+            {
+              "node": "IF Hay Deals Activos",
+              "type": "main",
+              "index": 0
+            }
           ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={ \"contents\": [ { \"parts\": [ { \"text\": \"Eres un analista B2B. Evalúa el riesgo de que este negocio NO se cierre basándote estrictamente en negligencia operativa (silencio, inactividad, tareas vencidas) o estancamiento de tiempo. Datos del deal:\\n- Título: {{ $json.title }}\\n- Etapa: {{ $json.stage }}\\n- Valor: {{ $json.value }}\\n- Probabilidad indicada: {{ $json.probability }}%\\n- Cierre esperado: {{ $json.expected_close }}\\n- Última actualización: {{ $json.updated_at }}\\n- Tareas asociadas: {{ JSON.stringify($json.tasks) }}\\n- Historial de Actividad: {{ JSON.stringify($json.activities) }}\\n\\nHoy es {{ $now }}. Responde SOLO con un JSON válido sin markdown:\\n{\\n  \\\"score\\\": <número 0 a 100 donde 100 es pérdida casi segura y 0 es muy seguro>,\\n  \\\"factors\\\": \\\"<1 oración breve indicando el factor de riesgo más urgente detectado o confirmando que el estado es sano>\\\"\\n}\\n\\nUmbrales: 0-39 (Bajo Riesgo, sano), 40-74 (Medio, necesita atención), 75-100 (Alto/Crítico, estancado o tareas clave vencidas).\" } ] } ], \"generationConfig\": {\"temperature\": 0.2,\"maxOutputTokens\": 500} }"
+        ]
       },
-      "id": "analyze-deal",
-      "name": "Analizar Riesgo",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [600, 0]
-    },
-    {
-      "parameters": {
-        "jsCode": "const response = $input.first().json;\nlet text = '';\nif (response.candidates && response.candidates[0] && response.candidates[0].content) {\n  text = response.candidates[0].content.parts[0].text;\n}\n\n// Limpiar el texto por si Gemini agrega markdown\nconst cleaned = text.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n\nlet parsed;\ntry {\n  parsed = JSON.parse(cleaned);\n} catch(e) {\n  parsed = {\n    score: 50,\n    factors: 'No se pudo analizar el riesgo temporalmente debido a un error de parseo.'\n  };\n}\n\nreturn [{\n  json: {\n    id: $('Split Deals').item.json.id,\n    ai_risk_score: parsed.score,\n    ai_risk_factors: parsed.factors,\n    ai_analyzed_at: new Date().toISOString()\n  }\n}];"
-      },
-      "id": "parse-gemini",
-      "name": "Parsear JSON IA",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [800, 0]
-    },
-    {
-      "parameters": {
-        "method": "PATCH",
-        "url": "=https://kgrfhfwtcanthrymmvkb.supabase.co/rest/v1/deals?id=eq.{{ $json.id }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY || 'YOUR_SUPABASE_SERVICE_ROLE_KEY' }}" },
-            { "name": "Authorization", "value": "Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY || 'YOUR_SUPABASE_SERVICE_ROLE_KEY' }}" },
-            { "name": "Content-Type", "value": "application/json" },
-            { "name": "Prefer", "value": "return=minimal" }
+      "IF Hay Deals Activos": {
+        "main": [
+          [
+            {
+              "node": "Loop Sobre Deals",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Sin Deals Activos",
+              "type": "main",
+              "index": 0
+            }
           ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ { ai_risk_score: $json.ai_risk_score, ai_risk_factors: $json.ai_risk_factors, ai_analyzed_at: $json.ai_analyzed_at } }}"
+        ]
       },
-      "id": "update-supabase",
-      "name": "Guardar Riesgo en Supabase",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [1000, 0]
-    }
-  ],
-  "connections": {
-    "Schedule Trigger": {
-      "main": [
-        [
-          {
-            "node": "Get Open Deals",
-            "type": "main",
-            "index": 0
-          }
+      "Loop Sobre Deals": {
+        "main": [
+          [
+            {
+              "node": "Analizar Riesgo CoT",
+              "type": "main",
+              "index": 0
+            }
+          ]
         ]
-      ]
+      },
+      "Analizar Riesgo CoT": {
+        "main": [
+          [
+            {
+              "node": "Parsear JSON IA",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parsear JSON IA": {
+        "main": [
+          [
+            {
+              "node": "Guardar Riesgo en Supabase",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Guardar Riesgo en Supabase": {
+        "main": [
+          [
+            {
+              "node": "Loggear Exito Deal",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Loggear Exito Deal": {
+        "main": [
+          [
+            {
+              "node": "Loop Sobre Deals",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Error Trigger": {
+        "main": [
+          [
+            {
+              "node": "Loggear Error Deal",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
     },
-    "Get Open Deals": {
-      "main": [
-        [
-          {
-            "node": "Split Deals",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+    "pinData": {},
+    "active": false,
+    "settings": {
+      "executionOrder": "v1"
     },
-    "Split Deals": {
-      "main": [
-        [
-          {
-            "node": "Analizar Riesgo",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+    "versionId": "deal-risk-v2-cot-2026",
+    "meta": {
+      "instanceId": "2bb80cd071df62a9fb180cbb85a9d2f9d0446308b05af4ee387661eb2b78c7fa"
     },
-    "Analizar Riesgo": {
-      "main": [
-        [
-          {
-            "node": "Parsear JSON IA",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Parsear JSON IA": {
-      "main": [
-        [
-          {
-            "node": "Guardar Riesgo en Supabase",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    }
-  },
-  "settings": {
-    "executionOrder": "v1"
-  },
-  "active": false
-}
+    "id": "deal-risk-agent-v2",
+    "tags": []
+  }
+]

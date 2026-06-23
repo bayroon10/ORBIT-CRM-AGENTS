@@ -1,159 +1,414 @@
-{
-  "name": "Lead Qualifier Agent",
-  "nodes": [
-    {
-      "parameters": {
-        "httpMethod": "POST",
-        "path": "lead-qualifier",
-        "responseMode": "lastNode",
-        "options": {}
+[
+  {
+    "name": "Lead Qualifier Agent",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "lead-qualifier",
+          "responseMode": "lastNode",
+          "options": {}
+        },
+        "id": "0ce52c4b-9500-478a-90a8-64da62740605",
+        "name": "Lead Creado",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 1,
+        "position": [
+          0,
+          100
+        ],
+        "webhookId": "69e50d8d-3a67-46ab-a410-0639bc9ecd86"
       },
-      "id": "0ce52c4b-9500-478a-90a8-64da62740605",
-      "name": "Lead Creado",
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 1,
-      "position": [
-        0,
-        0
-      ],
-      "webhookId": "69e50d8d-3a67-46ab-a410-0639bc9ecd86"
-    },
-    {
-      "parameters": {
-        "options": {}
-      },
-      "id": "76428fac-4630-400b-a248-e07bf9853598",
-      "name": "Preparar datos",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 1,
-      "position": [
-        200,
-        0
-      ]
-    },
-    {
-      "parameters": {
-        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key= ",
-        "options": {}
-      },
-      "id": "f647d4b7-66b8-4719-89ef-f6255223bb1b",
-      "name": "Analizar con Gemini",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 1,
-      "position": [
-        400,
-        0
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "const response = $input.first().json;\nconst text = response.candidates[0].content.parts[0].text;\n\n// Limpiar el texto por si Gemini agrega markdown\nconst cleaned = text.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n\nlet parsed;\ntry {\n  parsed = JSON.parse(cleaned);\n} catch(e) {\n  // Fallback si el JSON falla\n  parsed = {\n    score: 50,\n    category: 'Warm',\n    summary: 'Análisis no disponible temporalmente.',\n    next_step: 'Contactar al lead para obtener más información.'\n  };\n}\n\nreturn [{\n  json: {\n    lead_id: $('Preparar datos').first().json.lead_id,\n    ai_score: parsed.score,\n    ai_category: parsed.category,\n    ai_summary: parsed.summary,\n    ai_next_step: parsed.next_step,\n    ai_analyzed_at: new Date().toISOString()\n  }\n}];"
-      },
-      "id": "4c06aa1a-8996-462f-b128-790da6049f8a",
-      "name": "Parsear JSON de IA",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 1,
-      "position": [
-        600,
-        0
-      ]
-    },
-    {
-      "parameters": {
-        "url": "https://kgrfhfwtcanthrymmvkb.supabase.co/rest/v1/leads?id=eq.{{ $json.lead_id }}",
-        "options": {}
-      },
-      "id": "ca9364e6-0e75-4e0a-ae66-0aefec0bbd7d",
-      "name": "Guardar en Supabase",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 1,
-      "position": [
-        800,
-        0
-      ]
-    },
-    {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "{ \"ok\": true, \"score\": {{ $('Parsear JSON de IA').first().json.ai_score }} }",
-        "options": {}
-      },
-      "id": "34395486-7cf4-4065-ae4d-8d960147db33",
-      "name": "Confirmar",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1,
-      "position": [
-        1000,
-        0
-      ]
-    }
-  ],
-  "pinData": {},
-  "connections": {
-    "Lead Creado": {
-      "main": [
-        [
-          {
-            "node": "Preparar datos",
-            "type": "main",
-            "index": 0
-          }
+      {
+        "parameters": {
+          "values": {
+            "string": [
+              {
+                "name": "automation_id",
+                "value": "2a8b592d-fc8b-423a-b0b5-66793b480e37"
+              },
+              {
+                "name": "lead_id",
+                "value": "={{ $json.body.lead_id ?? $json.lead_id ?? '' }}"
+              },
+              {
+                "name": "email",
+                "value": "={{ ($json.body.email ?? $json.email ?? '').toString().trim().toLowerCase() }}"
+              },
+              {
+                "name": "full_name",
+                "value": "={{ ($json.body.full_name ?? $json.full_name ?? '').toString().trim() }}"
+              },
+              {
+                "name": "company",
+                "value": "={{ ($json.body.company ?? $json.company ?? 'Desconocida').toString().trim() }}"
+              },
+              {
+                "name": "position",
+                "value": "={{ ($json.body.position ?? $json.position ?? 'Sin cargo').toString().trim() }}"
+              },
+              {
+                "name": "source",
+                "value": "={{ ($json.body.source ?? $json.source ?? 'Desconocida').toString().trim() }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "cfg-inicial-001",
+        "name": "Configuracion Inicial",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 1,
+        "position": [
+          220,
+          100
         ]
-      ]
-    },
-    "Preparar datos": {
-      "main": [
-        [
-          {
-            "node": "Analizar con Gemini",
-            "type": "main",
-            "index": 0
-          }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "string": [
+              {
+                "value1": "={{ $json.email }}",
+                "operation": "isNotEmpty"
+              },
+              {
+                "value1": "={{ $json.full_name }}",
+                "operation": "isNotEmpty"
+              },
+              {
+                "value1": "={{ $json.lead_id }}",
+                "operation": "isNotEmpty"
+              }
+            ]
+          },
+          "combineOperation": "all"
+        },
+        "id": "if-validacion-entrada-001",
+        "name": "IF Datos Validos",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 1,
+        "position": [
+          440,
+          100
         ]
-      ]
-    },
-    "Analizar con Gemini": {
-      "main": [
-        [
-          {
-            "node": "Parsear JSON de IA",
-            "type": "main",
-            "index": 0
-          }
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={ \"ok\": false, \"error\": \"Datos de entrada incompletos. Se requieren: email, full_name, lead_id.\" }",
+          "responseCode": 400,
+          "options": {}
+        },
+        "id": "confirmar-rechazo-001",
+        "name": "Rechazar Datos Incompletos",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1,
+        "position": [
+          660,
+          280
         ]
-      ]
-    },
-    "Parsear JSON de IA": {
-      "main": [
-        [
-          {
-            "node": "Guardar en Supabase",
-            "type": "main",
-            "index": 0
-          }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={{ $credentials.googlePalmApi.apiKey }}",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "bodyParameters": {
+            "parameters": [
+              {
+                "name": "contents",
+                "value": "=[{ \"parts\": [{ \"text\": \"Eres un experto en ventas B2B. Analiza este lead y devuelve ÚNICAMENTE un JSON válido (sin markdown, sin texto extra) con la estructura: {\\\"score\\\": number(0-100), \\\"category\\\": string(Hot|Warm|Cold), \\\"summary\\\": string(max 80 chars), \\\"next_step\\\": string(max 100 chars)}. Datos del lead: Nombre: {{ $json.full_name }}, Email: {{ $json.email }}, Empresa: {{ $json.company }}, Cargo: {{ $json.position }}, Fuente: {{ $json.source }}.\" }] }]"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "f647d4b7-66b8-4719-89ef-f6255223bb1b",
+        "name": "Analizar con Gemini",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [
+          660,
+          100
         ]
-      ]
-    },
-    "Guardar en Supabase": {
-      "main": [
-        [
-          {
-            "node": "Confirmar",
-            "type": "main",
-            "index": 0
-          }
+      },
+      {
+        "parameters": {
+          "jsCode": "const response = $input.first().json;\nconst automationId = $('Configuracion Inicial').first().json.automation_id;\nconst leadId = $('Configuracion Inicial').first().json.lead_id;\n\nlet text = '';\ntry {\n  text = response.candidates[0].content.parts[0].text;\n} catch(e) {\n  throw new Error('Respuesta de Gemini con estructura inesperada: ' + JSON.stringify(response));\n}\n\n// Limpiar posibles bloques markdown\nconst cleaned = text.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n\nlet parsed;\ntry {\n  parsed = JSON.parse(cleaned);\n} catch(e) {\n  // Fallback seguro si el JSON falla\n  parsed = {\n    score: 50,\n    category: 'Warm',\n    summary: 'Análisis no disponible temporalmente.',\n    next_step: 'Contactar al lead para obtener más información.'\n  };\n}\n\n// Validar y sanitizar valores\nconst score = Math.min(100, Math.max(0, parseInt(parsed.score) || 50));\nconst validCategories = ['Hot', 'Warm', 'Cold'];\nconst category = validCategories.includes(parsed.category) ? parsed.category : 'Warm';\n\nreturn [{\n  json: {\n    automation_id: automationId,\n    lead_id: leadId,\n    ai_score: score,\n    ai_category: category,\n    ai_summary: (parsed.summary || '').substring(0, 200),\n    ai_next_step: (parsed.next_step || '').substring(0, 300),\n    ai_analyzed_at: new Date().toISOString()\n  }\n}];"
+        },
+        "id": "4c06aa1a-8996-462f-b128-790da6049f8a",
+        "name": "Parsear JSON de IA",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 1,
+        "position": [
+          880,
+          100
         ]
-      ]
-    }
-  },
-  "active": true,
-  "settings": {
-    "executionOrder": "v1"
-  },
-  "versionId": "ed632d3b-2bb8-46e0-834c-c3261fd54e29",
-  "meta": {
-    "instanceId": "2bb80cd071df62a9fb180cbb85a9d2f9d0446308b05af4ee387661eb2b78c7fa"
-  },
-  "id": "FD6A1BHVkaDFx0vI",
-  "tags": []
-}
+      },
+      {
+        "parameters": {
+          "method": "PATCH",
+          "url": "https://kgrfhfwtcanthrymmvkb.supabase.co/rest/v1/leads?id=eq.{{ $json.lead_id }}",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "apikey",
+                "value": "={{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Authorization",
+                "value": "=Bearer {{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Prefer",
+                "value": "return=representation"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"ai_score\": {{ $json.ai_score }},\n  \"ai_category\": \"{{ $json.ai_category }}\",\n  \"ai_summary\": \"{{ $json.ai_summary.replace(/\"/g, \"'\") }}\",\n  \"ai_next_step\": \"{{ $json.ai_next_step.replace(/\"/g, \"'\") }}\",\n  \"ai_analyzed_at\": \"{{ $json.ai_analyzed_at }}\"\n}",
+          "options": {}
+        },
+        "id": "ca9364e6-0e75-4e0a-ae66-0aefec0bbd7d",
+        "name": "Guardar en Supabase",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [
+          1100,
+          100
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://kgrfhfwtcanthrymmvkb.supabase.co/rest/v1/automation_logs",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "apikey",
+                "value": "={{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Authorization",
+                "value": "=Bearer {{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Prefer",
+                "value": "return=minimal"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"automation_id\": \"{{ $('Parsear JSON de IA').first().json.automation_id }}\",\n  \"status\": \"success\",\n  \"trigger_event\": \"lead_webhook\",\n  \"payload\": {\n    \"lead_id\": \"{{ $('Parsear JSON de IA').first().json.lead_id }}\",\n    \"ai_score\": {{ $('Parsear JSON de IA').first().json.ai_score }},\n    \"ai_category\": \"{{ $('Parsear JSON de IA').first().json.ai_category }}\"\n  }\n}",
+          "options": {}
+        },
+        "id": "log-exito-001",
+        "name": "Loggear Exito",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [
+          1320,
+          100
+        ],
+        "continueOnFail": false
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={ \"ok\": true, \"lead_id\": \"{{ $('Parsear JSON de IA').first().json.lead_id }}\", \"ai_score\": {{ $('Parsear JSON de IA').first().json.ai_score }}, \"ai_category\": \"{{ $('Parsear JSON de IA').first().json.ai_category }}\" }",
+          "options": {}
+        },
+        "id": "34395486-7cf4-4065-ae4d-8d960147db33",
+        "name": "Confirmar",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1,
+        "position": [
+          1540,
+          100
+        ]
+      },
+      {
+        "parameters": {},
+        "id": "error-trigger-001",
+        "name": "Error Trigger",
+        "type": "n8n-nodes-base.errorTrigger",
+        "typeVersion": 1,
+        "position": [
+          0,
+          -200
+        ],
+        "continueOnFail": false
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://kgrfhfwtcanthrymmvkb.supabase.co/rest/v1/automation_logs",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "apikey",
+                "value": "={{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Authorization",
+                "value": "=Bearer {{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Prefer",
+                "value": "return=minimal"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"automation_id\": \"2a8b592d-fc8b-423a-b0b5-66793b480e37\",\n  \"status\": \"failed\",\n  \"trigger_event\": \"lead_webhook\",\n  \"error_message\": \"{{ $json.execution.error.message }}\",\n  \"payload\": {\n    \"workflow\": \"{{ $json.workflow.name }}\",\n    \"node\": \"{{ $json.execution.lastNodeExecuted }}\"\n  }\n}",
+          "options": {}
+        },
+        "id": "log-error-001",
+        "name": "Loggear Error",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [
+          220,
+          -200
+        ],
+        "continueOnFail": false
+      }
+    ],
+    "connections": {
+      "Lead Creado": {
+        "main": [
+          [
+            {
+              "node": "Configuracion Inicial",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Configuracion Inicial": {
+        "main": [
+          [
+            {
+              "node": "IF Datos Validos",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Datos Validos": {
+        "main": [
+          [
+            {
+              "node": "Analizar con Gemini",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Rechazar Datos Incompletos",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Analizar con Gemini": {
+        "main": [
+          [
+            {
+              "node": "Parsear JSON de IA",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parsear JSON de IA": {
+        "main": [
+          [
+            {
+              "node": "Guardar en Supabase",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Guardar en Supabase": {
+        "main": [
+          [
+            {
+              "node": "Loggear Exito",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Loggear Exito": {
+        "main": [
+          [
+            {
+              "node": "Confirmar",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Error Trigger": {
+        "main": [
+          [
+            {
+              "node": "Loggear Error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "pinData": {},
+    "active": false,
+    "settings": {
+      "executionOrder": "v1"
+    },
+    "versionId": "lqa-v2-optimized-2026",
+    "meta": {
+      "instanceId": "2bb80cd071df62a9fb180cbb85a9d2f9d0446308b05af4ee387661eb2b78c7fa"
+    },
+    "id": "FD6A1BHVkaDFx0vI",
+    "tags": []
+  }
+]
