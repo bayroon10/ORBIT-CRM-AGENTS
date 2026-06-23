@@ -1,23 +1,35 @@
-version: '3.8'
-
 services:
   n8n:
-    # Se usa una versión pineada en lugar de 'latest' para garantizar 
-    # la reproducibilidad del entorno y evitar breaking changes inesperados.
-    image: n8nio/n8n:1.45.1
+    # Versión pineada para garantizar reproducibilidad y evitar breaking changes.
+    image: n8nio/n8n:1.72.0
     container_name: orbit_n8n
     restart: unless-stopped
     ports:
       - "5678:5678"
     env_file:
-      - .env.n8n
-    environment:
-      # Permite peticiones cross-origin desde el dev server de Vite.
-      # En producción, cambiar por la URL del frontend desplegado.
-      - N8N_CORS_ORIGIN=http://localhost:5173
-      - N8N_CORS_ALLOW_ALL=true
-      - N8N_RESPONSE_FORM_ALLOW_CORS=*
-      - N8N_ENFORCE_SETTINGS_FILE_FOR_WEBHOOK_CORS=true
-      - WEBHOOK_TUNNEL_URL=http://localhost:5678
+      - .env
     volumes:
       - ./.n8n-data:/home/node/.n8n
+    networks:
+      - orbit_net
+
+  # ── Servicio de Túnel Público ─────────────────────────────────────────────
+  # ngrok corre como hermano de n8n en la misma red Docker interna.
+  # Resuelve orbit_n8n:5678 por DNS interno — no hay exposición de puertos extra.
+  # El dominio estático gratuito hace que el webhook del Lead Qualifier
+  # sea una URL perpetua que no cambia entre reinicios.
+  orbit_ngrok:
+    image: ngrok/ngrok:latest
+    container_name: orbit_ngrok
+    restart: unless-stopped
+    command: http orbit_n8n:5678 --url=${NGROK_DOMAIN}
+    env_file:
+      - .env
+    depends_on:
+      - n8n
+    networks:
+      - orbit_net
+
+networks:
+  orbit_net:
+    driver: bridge

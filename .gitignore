@@ -69,3 +69,10 @@ PREMIUM_AUTONOMOUS_UPGRADE_LOG.md
 N8N_TOTAL_ARCHITECTURAL_AUDIT.md 
 # Docs vac¡os  
 docs/ 
+
+# Debug y archivos temporales de desarrollo
+debug_*.json
+test_*.mjs
+test_*.cjs
+temp_*/
+ORBIT_TOTAL_AUDIT.md

@@ -1,258 +1,397 @@
-{
-  "name": "Weekly Summary Agent",
-  "nodes": [
-    {
-      "parameters": {
-        "rule": {
-          "interval": [
-            {
-              "field": "cronExpression",
-              "expression": "0 8 * * 1"
-            }
-          ]
+[
+  {
+    "name": "Weekly Summary Agent",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "0 8 * * 1"
+              }
+            ]
+          }
+        },
+        "id": "schedule-trigger",
+        "name": "Schedule Trigger",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          0,
+          100
+        ]
+      },
+      {
+        "parameters": {
+          "values": {
+            "string": [
+              {
+                "name": "automation_id",
+                "value": "48a75e32-9015-4394-aa67-750034e0ff0b"
+              },
+              {
+                "name": "run_date",
+                "value": "={{ new Date().toISOString() }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "config-inicial",
+        "name": "Configuracion Inicial",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 1,
+        "position": [
+          200,
+          100
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "WITH metricas_7_dias AS (\n  SELECT (NOW() - INTERVAL '7 days') AS limite_fecha\n)\nSELECT\n  json_build_object(\n    'weekly_metrics', json_build_object(\n      'new_leads', (\n         SELECT COUNT(*)::int FROM leads CROSS JOIN metricas_7_dias\n         WHERE created_at >= limite_fecha\n      ),\n      'won_deals_count', (\n         SELECT COUNT(*)::int FROM deals CROSS JOIN metricas_7_dias\n         WHERE LOWER(stage) = 'ganado' AND stage_updated_at >= limite_fecha\n      ),\n      'won_deals_total_value', (\n         SELECT COALESCE(SUM(value), 0)::numeric FROM deals CROSS JOIN metricas_7_dias\n         WHERE LOWER(stage) = 'ganado' AND stage_updated_at >= limite_fecha\n      ),\n      'active_high_risk_deals', (\n         SELECT COUNT(*)::int FROM deals\n         WHERE ai_risk_level IN ('High', 'Critical')\n      ),\n      'pending_critical_tasks', (\n         SELECT COUNT(*)::int FROM tasks\n         WHERE LOWER(status) != 'completada' AND priority = 'Alta'\n      ),\n      'active_deals_total', (\n         SELECT COUNT(*)::int FROM deals\n         WHERE LOWER(stage) NOT IN ('ganado', 'perdido')\n      )\n    ),\n    'generated_at', NOW()\n  ) AS payload;"
+        },
+        "id": "postgres-node",
+        "name": "Extraer Metricas SQL",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.2,
+        "position": [
+          420,
+          100
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "REEMPLAZAR_EN_UI",
+            "name": "Postgres (Supabase DB)"
+          }
         }
       },
-      "id": "schedule-trigger",
-      "name": "Schedule Trigger",
-      "type": "n8n-nodes-base.scheduleTrigger",
-      "typeVersion": 1.1,
-      "position": [
-        0,
-        0
-      ]
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "WITH metricas_7_dias AS (\n  SELECT (NOW() - INTERVAL '7 days') AS limite_fecha\n)\nSELECT \n  json_build_object(\n    'weekly_metrics', json_build_object(\n      'new_leads', (\n         SELECT COUNT(*)::int FROM leads CROSS JOIN metricas_7_dias \n         WHERE created_at >= limite_fecha\n      ),\n      'won_deals_count', (\n         SELECT COUNT(*)::int FROM deals CROSS JOIN metricas_7_dias \n         WHERE LOWER(stage) = 'ganado' AND stage_updated_at >= limite_fecha\n      ),\n      'won_deals_total_value', (\n         SELECT COALESCE(SUM(value), 0)::numeric FROM deals CROSS JOIN metricas_7_dias \n         WHERE LOWER(stage) = 'ganado' AND stage_updated_at >= limite_fecha\n      ),\n      'active_high_risk_deals', (\n         SELECT COUNT(*)::int FROM deals \n         WHERE ai_risk_level = 'High'\n      ),\n      'pending_critical_tasks', (\n         SELECT COUNT(*)::int FROM tasks \n         WHERE LOWER(status) != 'completada' AND priority = 'Alta'\n      )\n    ),\n    'generated_at', NOW()\n  ) AS payload;"
+      {
+        "parameters": {
+          "conditions": {
+            "number": [
+              {
+                "value1": "={{ ($json.payload?.weekly_metrics?.new_leads ?? 0) + ($json.payload?.weekly_metrics?.won_deals_count ?? 0) + ($json.payload?.weekly_metrics?.active_deals_total ?? 0) }}",
+                "operation": "larger",
+                "value2": 0
+              }
+            ]
+          }
+        },
+        "id": "if-empty-validation",
+        "name": "IF Validacion Vacia",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 1,
+        "position": [
+          640,
+          100
+        ]
       },
-      "id": "postgres-node",
-      "name": "Extraer Métricas SQL",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.2,
-      "position": [
-        200,
-        0
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "REEMPLAZAR_EN_UI",
-          "name": "Postgres (Supabase DB)"
+      {
+        "parameters": {
+          "values": {
+            "string": [
+              {
+                "name": "status",
+                "value": "skipped"
+              },
+              {
+                "name": "message",
+                "value": "Sin actividad comercial esta semana. Reporte omitido."
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "no-data-noop",
+        "name": "Sin Datos Esta Semana",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 1,
+        "position": [
+          860,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "resource": "text",
+          "operation": "generate",
+          "prompt": "Eres el analista ejecutivo de IA de Orbit CRM. Redacta el reporte semanal del equipo comercial basándote ESTRICTAMENTE en este JSON de métricas de la última semana: {{ $json.payload }}.\n\nREGLAS DE REDACCIÓN:\n- Escribe exactamente 2 párrafos cortos y directos.\n- Tono profesional, ágil y ejecutivo.\n- Usa máximo 3 emojis en todo el texto.\n- Menciona siempre el valor financiero total de los negocios ganados.\n- Si hay Deals en riesgo alto (active_high_risk_deals > 0), menciónalo con urgencia.\n- Si hay tareas críticas pendientes (pending_critical_tasks > 0), inclúyelas.\n- NUNCA inventes números ni datos que no estén en el JSON.\n\nREGLAS DE FORMATO — CRÍTICO:\n- Responde ÚNICAMENTE con texto plano Markdown limpio.\n- PROHIBIDO usar bloques de código (ni ```markdown, ni ```, ni ninguna variante).\n- PROHIBIDO usar comillas triples de ningún tipo.\n- Usa **negrita** para destacar métricas clave.\n- El texto debe ser compatible con componentes de UI oscura (dark mode).\n- No uses saltos de línea extras ni encabezados H1/H2 — solo párrafos.",
+          "options": {
+            "maxOutputTokens": 2000,
+            "temperature": 0.4
+          }
+        },
+        "id": "gemini-node",
+        "name": "Redactar Resumen (Gemini)",
+        "type": "n8n-nodes-base.googleGemini",
+        "typeVersion": 1,
+        "position": [
+          860,
+          100
+        ],
+        "credentials": {
+          "googlePalmApi": {
+            "id": "REEMPLAZAR_EN_UI",
+            "name": "Google Gemini(PaLM) Api account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const automationId = $('Configuracion Inicial').first().json.automation_id;\nconst runDate = $('Configuracion Inicial').first().json.run_date;\nconst raw = $input.first().json.text || '';\n\n// Eliminar cualquier bloque de código markdown que Gemini añada\nconst sanitized = raw\n  .replace(/```markdown\\n?/gi, '')\n  .replace(/```json\\n?/gi, '')\n  .replace(/```\\n?/g, '')\n  .replace(/~~~\\n?/g, '')\n  .trim();\n\n// Validar que hay contenido mínimo\nif (sanitized.length < 20) {\n  throw new Error('Gemini devolvió un resumen demasiado corto o vacío: ' + JSON.stringify(raw));\n}\n\nreturn [{\n  json: {\n    automation_id: automationId,\n    run_date: runDate,\n    text: sanitized,\n    char_count: sanitized.length\n  }\n}];"
+        },
+        "id": "sanitizer-node",
+        "name": "Sanitizar Markdown",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1080,
+          100
+        ]
+      },
+      {
+        "parameters": {
+          "resource": "databaseOperations",
+          "operation": "insert",
+          "table": "activities",
+          "dataToSend": "defineBelow",
+          "valuesToSend": {
+            "values": [
+              {
+                "name": "type",
+                "value": "resumen_semanal"
+              },
+              {
+                "name": "description",
+                "value": "={{ $json.text }}"
+              }
+            ]
+          }
+        },
+        "id": "supabase-node",
+        "name": "Guardar en Activities",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          1300,
+          100
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "REEMPLAZAR_EN_UI",
+            "name": "Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "databaseOperations",
+          "operation": "insert",
+          "table": "automation_logs",
+          "dataToSend": "defineBelow",
+          "valuesToSend": {
+            "values": [
+              {
+                "name": "automation_id",
+                "value": "={{ $('Sanitizar Markdown').first().json.automation_id }}"
+              },
+              {
+                "name": "status",
+                "value": "success"
+              },
+              {
+                "name": "trigger_event",
+                "value": "weekly_summary"
+              },
+              {
+                "name": "payload",
+                "value": "={{ JSON.stringify({ run_date: $('Sanitizar Markdown').first().json.run_date, char_count: $('Sanitizar Markdown').first().json.char_count, source: 'gemini_weekly_report' }) }}"
+              }
+            ]
+          }
+        },
+        "id": "success-log",
+        "name": "Loggear Exito",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          1520,
+          100
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "REEMPLAZAR_EN_UI",
+            "name": "Supabase account"
+          }
+        }
+      },
+      {
+        "parameters": {},
+        "id": "error-trigger",
+        "name": "Error Trigger",
+        "type": "n8n-nodes-base.errorTrigger",
+        "typeVersion": 1,
+        "position": [
+          0,
+          -200
+        ]
+      },
+      {
+        "parameters": {
+          "resource": "databaseOperations",
+          "operation": "insert",
+          "table": "automation_logs",
+          "dataToSend": "defineBelow",
+          "valuesToSend": {
+            "values": [
+              {
+                "name": "automation_id",
+                "value": "48a75e32-9015-4394-aa67-750034e0ff0b"
+              },
+              {
+                "name": "status",
+                "value": "failed"
+              },
+              {
+                "name": "trigger_event",
+                "value": "weekly_summary"
+              },
+              {
+                "name": "error_message",
+                "value": "={{ $json.execution.error.message }}"
+              },
+              {
+                "name": "payload",
+                "value": "={{ JSON.stringify({ workflow: $json.workflow.name, last_node: $json.execution.lastNodeExecuted }) }}"
+              }
+            ]
+          }
+        },
+        "id": "error-log",
+        "name": "Loggear Error",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          220,
+          -200
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "REEMPLAZAR_EN_UI",
+            "name": "Supabase account"
+          }
         }
       }
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "boolean": [],
-          "number": [],
-          "string": [
+    ],
+    "connections": {
+      "Schedule Trigger": {
+        "main": [
+          [
             {
-              "value1": "={{ $json.payload.weekly_metrics.new_leads + $json.payload.weekly_metrics.won_deals_count + $json.payload.weekly_metrics.active_high_risk_deals }}",
-              "operation": "notEqual",
-              "value2": "0"
+              "node": "Configuracion Inicial",
+              "type": "main",
+              "index": 0
             }
           ]
-        }
+        ]
       },
-      "id": "if-empty-validation",
-      "name": "IF Validación Vacía",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 1,
-      "position": [
-        400,
-        0
-      ]
-    },
-    {
-      "parameters": {
-        "resource": "text",
-        "operation": "generate",
-        "prompt": "Eres el analista ejecutivo de IA de Orbit CRM. Redacta un reporte semanal en 2 párrafos cortos y directos basándote ESTRICTAMENTE en este JSON de métricas de la última semana: {{ $json.payload }}. \n\nReglas:\n- Tono profesional, ágil y al grano.\n- Usa 2 o 3 emojis como máximo.\n- Menciona siempre el valor financiero de los negocios ganados y si hay Deals en riesgo alto.\n- NUNCA inventes números ni datos que no estén en el JSON.",
-        "options": {}
-      },
-      "id": "gemini-node",
-      "name": "Redactar Resumen (Gemini)",
-      "type": "n8n-nodes-base.googleGemini",
-      "typeVersion": 1,
-      "position": [
-        600,
-        0
-      ],
-      "credentials": {
-        "googlePalmApi": {
-          "id": "REEMPLAZAR_EN_UI",
-          "name": "Google Gemini(PaLM) Api account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "const text = $input.first().json.text || '';\nconst sanitized = text.replace(/```markdown/gi, '').replace(/```/g, '').trim();\nreturn { json: { text: sanitized } };"
-      },
-      "id": "sanitizer-node",
-      "name": "Sanitizar Markdown",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        800,
-        0
-      ]
-    },
-    {
-      "parameters": {
-        "resource": "databaseOperations",
-        "operation": "insert",
-        "table": "activities",
-        "dataToSend": "defineBelow",
-        "valuesToSend": {
-          "values": [
+      "Configuracion Inicial": {
+        "main": [
+          [
             {
-              "name": "type",
-              "value": "resumen_semanal"
-            },
-            {
-              "name": "description",
-              "value": "={{ $json.text }}"
+              "node": "Extraer Metricas SQL",
+              "type": "main",
+              "index": 0
             }
           ]
-        }
+        ]
       },
-      "id": "supabase-node",
-      "name": "Guardar en Activities",
-      "type": "n8n-nodes-base.supabase",
-      "typeVersion": 1,
-      "position": [
-        1000,
-        0
-      ],
-      "credentials": {
-        "supabaseApi": {
-          "id": "REEMPLAZAR_EN_UI",
-          "name": "Supabase account"
-        }
-      }
-    },
-    {
-      "parameters": {},
-      "id": "error-trigger",
-      "name": "Error Trigger",
-      "type": "n8n-nodes-base.errorTrigger",
-      "typeVersion": 1,
-      "position": [
-        0,
-        -200
-      ]
-    },
-    {
-      "parameters": {
-        "resource": "databaseOperations",
-        "operation": "insert",
-        "table": "automation_logs",
-        "dataToSend": "defineBelow",
-        "valuesToSend": {
-          "values": [
+      "Extraer Metricas SQL": {
+        "main": [
+          [
             {
-              "name": "status",
-              "value": "failed"
-            },
-            {
-              "name": "error_message",
-              "value": "={{ $json.execution.error.message }}"
-            },
-            {
-              "name": "trigger_event",
-              "value": "weekly_summary"
+              "node": "IF Validacion Vacia",
+              "type": "main",
+              "index": 0
             }
           ]
-        }
+        ]
       },
-      "id": "error-log",
-      "name": "Loggear Error",
-      "type": "n8n-nodes-base.supabase",
-      "typeVersion": 1,
-      "position": [
-        200,
-        -200
-      ],
-      "credentials": {
-        "supabaseApi": {
-          "id": "REEMPLAZAR_EN_UI",
-          "name": "Supabase account"
-        }
+      "IF Validacion Vacia": {
+        "main": [
+          [
+            {
+              "node": "Redactar Resumen (Gemini)",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Sin Datos Esta Semana",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Redactar Resumen (Gemini)": {
+        "main": [
+          [
+            {
+              "node": "Sanitizar Markdown",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Sanitizar Markdown": {
+        "main": [
+          [
+            {
+              "node": "Guardar en Activities",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Guardar en Activities": {
+        "main": [
+          [
+            {
+              "node": "Loggear Exito",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Error Trigger": {
+        "main": [
+          [
+            {
+              "node": "Loggear Error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
       }
-    }
-  ],
-  "connections": {
-    "Schedule Trigger": {
-      "main": [
-        [
-          {
-            "node": "Extraer Métricas SQL",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
     },
-    "Extraer Métricas SQL": {
-      "main": [
-        [
-          {
-            "node": "IF Validación Vacía",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+    "pinData": {},
+    "active": false,
+    "settings": {
+      "executionOrder": "v1"
     },
-    "IF Validación Vacía": {
-      "main": [
-        [
-          {
-            "node": "Redactar Resumen (Gemini)",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+    "versionId": "weekly-v2-optimized-2026",
+    "meta": {
+      "instanceId": "2bb80cd071df62a9fb180cbb85a9d2f9d0446308b05af4ee387661eb2b78c7fa"
     },
-    "Redactar Resumen (Gemini)": {
-      "main": [
-        [
-          {
-            "node": "Sanitizar Markdown",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Sanitizar Markdown": {
-      "main": [
-        [
-          {
-            "node": "Guardar en Activities",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Error Trigger": {
-      "main": [
-        [
-          {
-            "node": "Loggear Error",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    }
-  },
-  "active": false,
-  "settings": {
-    "executionOrder": "v1"
+    "id": "a1tKLH2F9gIGBRn0",
+    "tags": []
   }
-}
+]
