@@ -18,17 +18,17 @@
 
     <!-- Data State -->
     <template v-else-if="company">
-      <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 px-8 py-10 mb-8 shadow-lg border border-primary/20 shrink-0">
+      <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 px-8 py-10 mb-8 shadow-2xl border border-white/10 shrink-0">
         <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle, #818cf8 1px, transparent 1px); background-size: 24px 24px;"></div>
         <div class="absolute -top-20 -right-20 w-80 h-80 rounded-full opacity-15 bg-primary blur-3xl"></div>
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div class="flex items-center gap-4">
-            <div class="w-16 h-16 rounded-2xl bg-surface-card flex items-center justify-center overflow-hidden border border-border text-primary-300 font-bold text-3xl shrink-0 shadow-inner">
+            <div class="w-16 h-16 rounded-2xl bg-slate-800/50 flex items-center justify-center overflow-hidden border border-white/10 text-slate-50 font-bold text-3xl shrink-0 shadow-inner">
               {{ company.name.charAt(0).toUpperCase() }}
             </div>
             <div>
-              <h1 class="text-3xl font-bold text-text-main">{{ company.name }}</h1>
-              <p class="text-text-secondary mt-1">Empresa · {{ company.industry || 'Sin industria especificada' }}</p>
+              <h1 class="text-3xl font-bold text-slate-50">{{ company.name }}</h1>
+              <p class="text-slate-400 mt-1">Empresa · {{ company.industry || 'Sin industria especificada' }}</p>
             </div>
           </div>
           <div class="flex space-x-3 items-center">
@@ -47,7 +47,7 @@
             </BaseButton>
             <button 
               @click="router.push('/companies')"
-              class="px-4 py-2 border border-border rounded-lg text-sm font-medium text-text-secondary hover:text-text-main hover:bg-surface-card transition-colors"
+              class="px-4 py-2 border border-white/10 rounded-lg text-sm font-medium text-slate-400 hover:text-slate-50 hover:bg-slate-800/50 transition-colors"
             >
               &larr; Volver
             </button>
@@ -61,30 +61,30 @@
           <!-- COLUMNA IZQUIERDA -->
           <div class="lg:col-span-1 space-y-6">
             <BaseCard>
-              <h2 class="font-semibold text-text-main mb-4 text-lg">Información de la Empresa</h2>
+              <h2 class="font-semibold text-slate-50 mb-4 text-lg">Información de la Empresa</h2>
               <div class="space-y-0">
                 
-                <div class="flex items-center gap-3 py-3 border-b border-border">
-                  <div class="w-8 flex justify-center text-text-muted">🏢</div>
+                <div class="flex items-center gap-3 py-3 border-b border-white/10">
+                  <div class="w-8 flex justify-center text-slate-500">🏢</div>
                   <div>
-                    <div class="text-xs text-text-muted uppercase tracking-wide">Nombre</div>
-                    <div class="text-sm text-text-main font-medium">{{ company.name }}</div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wide">Nombre</div>
+                    <div class="text-sm text-slate-50 font-medium">{{ company.name }}</div>
                   </div>
                 </div>
 
-                <div class="flex items-center gap-3 py-3 border-b border-border">
-                  <div class="w-8 flex justify-center text-text-muted">💼</div>
+                <div class="flex items-center gap-3 py-3 border-b border-white/10">
+                  <div class="w-8 flex justify-center text-slate-500">💼</div>
                   <div>
-                    <div class="text-xs text-text-muted uppercase tracking-wide">Industria</div>
-                    <div class="text-sm text-text-main font-medium">{{ company.industry || '—' }}</div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wide">Industria</div>
+                    <div class="text-sm text-slate-50 font-medium">{{ company.industry || '—' }}</div>
                   </div>
                 </div>
 
-                <div class="flex items-center gap-3 py-3 border-b border-border">
-                  <div class="w-8 flex justify-center text-text-muted">🌐</div>
+                <div class="flex items-center gap-3 py-3 border-b border-white/10">
+                  <div class="w-8 flex justify-center text-slate-500">🌐</div>
                   <div>
-                    <div class="text-xs text-text-muted uppercase tracking-wide">Sitio Web</div>
-                    <div class="text-sm text-text-main font-medium">
+                    <div class="text-xs text-slate-500 uppercase tracking-wide">Sitio Web</div>
+                    <div class="text-sm text-slate-50 font-medium">
                       <a v-if="company.website" :href="formatUrl(company.website)" target="_blank" class="text-primary-300 hover:underline">{{ company.website }}</a>
                       <span v-else>—</span>
                     </div>
@@ -92,10 +92,10 @@
                 </div>
 
                 <div class="flex items-center gap-3 py-3">
-                  <div class="w-8 flex justify-center text-text-muted">📅</div>
+                  <div class="w-8 flex justify-center text-slate-500">📅</div>
                   <div>
-                    <div class="text-xs text-text-muted uppercase tracking-wide">Creado</div>
-                    <div class="text-sm text-text-main font-medium">{{ formatDate(company.created_at) }}</div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wide">Creado</div>
+                    <div class="text-sm text-slate-50 font-medium">{{ formatDate(company.created_at) }}</div>
                   </div>
                 </div>
 
@@ -109,19 +109,19 @@
             <!-- Leads Asociados -->
             <BaseCard>
               <div class="flex justify-between items-center mb-4">
-                <h2 class="font-semibold text-text-main text-lg">Contactos (Leads)</h2>
-                <span class="bg-surface-card border border-border text-text-secondary px-2.5 py-0.5 rounded-full text-xs font-medium">{{ leads.length }}</span>
+                <h2 class="font-semibold text-slate-50 text-lg">Contactos (Leads)</h2>
+                <span class="bg-slate-800/50 border border-white/10 text-slate-400 px-2.5 py-0.5 rounded-full text-xs font-medium">{{ leads.length }}</span>
               </div>
               
               <div v-if="leads.length === 0" class="text-center py-4">
-                <p class="text-sm text-text-secondary">Sin prospectos asociados</p>
+                <p class="text-sm text-slate-400">Sin prospectos asociados</p>
               </div>
               
               <div v-else class="space-y-0">
-                <div v-for="lead in leads" :key="lead.id" class="flex justify-between items-center py-3 border-b border-border last:border-0 hover:bg-surface-card transition-colors -mx-6 px-6 cursor-pointer" @click="router.push('/leads/' + lead.id)">
+                <div v-for="lead in leads" :key="lead.id" class="flex justify-between items-center py-3 border-b border-white/10 last:border-0 hover:bg-slate-800/50 transition-colors -mx-6 px-6 cursor-pointer" @click="router.push('/leads/' + lead.id)">
                   <div>
-                    <div class="font-medium text-sm text-text-main">{{ lead.full_name }}</div>
-                    <div class="text-xs text-text-secondary mt-0.5">{{ lead.email || 'Sin email' }}</div>
+                    <div class="font-medium text-sm text-slate-50">{{ lead.full_name }}</div>
+                    <div class="text-xs text-slate-400 mt-0.5">{{ lead.email || 'Sin email' }}</div>
                   </div>
                   <div class="flex items-center gap-4">
                     <BaseBadge :variant="getLeadStatusVariant(lead.status)">
@@ -135,19 +135,19 @@
             <!-- Negocios Asociados -->
             <BaseCard>
               <div class="flex justify-between items-center mb-4">
-                <h2 class="font-semibold text-text-main text-lg">Negocios Activos</h2>
-                <span class="bg-surface-card border border-border text-text-secondary px-2.5 py-0.5 rounded-full text-xs font-medium">{{ deals.length }}</span>
+                <h2 class="font-semibold text-slate-50 text-lg">Negocios Activos</h2>
+                <span class="bg-slate-800/50 border border-white/10 text-slate-400 px-2.5 py-0.5 rounded-full text-xs font-medium">{{ deals.length }}</span>
               </div>
               
               <div v-if="deals.length === 0" class="text-center py-4">
-                <p class="text-sm text-text-secondary">Sin negocios asociados</p>
+                <p class="text-sm text-slate-400">Sin negocios asociados</p>
               </div>
               
               <div v-else class="space-y-0">
-                <div v-for="deal in deals" :key="deal.id" class="flex justify-between items-center py-3 border-b border-border last:border-0 hover:bg-surface-card transition-colors -mx-6 px-6 cursor-pointer" @click="router.push('/deals/' + deal.id)">
+                <div v-for="deal in deals" :key="deal.id" class="flex justify-between items-center py-3 border-b border-white/10 last:border-0 hover:bg-slate-800/50 transition-colors -mx-6 px-6 cursor-pointer" @click="router.push('/deals/' + deal.id)">
                   <div>
-                    <div class="font-medium text-sm text-text-main">{{ deal.title }}</div>
-                    <div v-if="deal.expected_close" class="text-xs text-text-secondary mt-0.5">Cierre: {{ formatDate(deal.expected_close) }}</div>
+                    <div class="font-medium text-sm text-slate-50">{{ deal.title }}</div>
+                    <div v-if="deal.expected_close" class="text-xs text-slate-400 mt-0.5">Cierre: {{ formatDate(deal.expected_close) }}</div>
                   </div>
                   <div class="flex items-center gap-4">
                     <BaseBadge :variant="getDealStageVariant(deal.stage)">
@@ -172,16 +172,16 @@
             <span>{{ editError }}</span>
           </div>
           <div>
-            <label class="block text-sm font-medium text-text-main mb-1">Nombre *</label>
-            <input v-model="editForm.name" type="text" required class="w-full border border-border-strong rounded-lg px-3 py-2 text-sm bg-surface text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all" />
+            <label class="block text-sm font-medium text-slate-50 mb-1">Nombre *</label>
+            <input v-model="editForm.name" type="text" required class="w-full bg-slate-900/40 backdrop-blur-sm border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all" />
           </div>
           <div>
-            <label class="block text-sm font-medium text-text-main mb-1">Industria</label>
-            <input v-model="editForm.industry" type="text" class="w-full border border-border-strong rounded-lg px-3 py-2 text-sm bg-surface text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all" />
+            <label class="block text-sm font-medium text-slate-50 mb-1">Industria</label>
+            <input v-model="editForm.industry" type="text" class="w-full bg-slate-900/40 backdrop-blur-sm border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all" />
           </div>
           <div>
-            <label class="block text-sm font-medium text-text-main mb-1">Sitio Web</label>
-            <input v-model="editForm.website" type="url" class="w-full border border-border-strong rounded-lg px-3 py-2 text-sm bg-surface text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all" />
+            <label class="block text-sm font-medium text-slate-50 mb-1">Sitio Web</label>
+            <input v-model="editForm.website" type="url" class="w-full bg-slate-900/40 backdrop-blur-sm border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all" />
           </div>
         </form>
         <template #footer>
@@ -197,8 +197,8 @@
         <div class="space-y-4">
           <div class="bg-danger/10 border border-danger/20 rounded-lg p-4">
             <h3 class="text-danger font-semibold mb-2">⚠ Acción irreversible</h3>
-            <p class="text-sm text-text-secondary">
-              Estás a punto de eliminar la empresa <span class="font-bold text-text-main">{{ company.name }}</span>. 
+            <p class="text-sm text-slate-400">
+              Estás a punto de eliminar la empresa <span class="font-bold text-slate-50">{{ company.name }}</span>. 
               Esta acción no se puede deshacer. Los leads y negocios asociados podrían perder esta relación.
             </p>
           </div>

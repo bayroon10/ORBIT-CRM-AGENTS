@@ -18,13 +18,13 @@
 
     <!-- Data State -->
     <template v-else-if="lead">
-      <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 px-8 py-10 mb-8 shadow-lg border border-primary/20 shrink-0">
+      <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 px-8 py-10 mb-8 shadow-2xl border border-white/10 shrink-0">
         <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle, #818cf8 1px, transparent 1px); background-size: 24px 24px;"></div>
         <div class="absolute -top-20 -right-20 w-80 h-80 rounded-full opacity-15 bg-primary blur-3xl"></div>
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 class="text-3xl font-bold text-text-main">{{ lead.full_name }}</h1>
-            <p class="text-text-secondary mt-1">Prospecto · {{ lead.companies?.name || 'Sin empresa' }}</p>
+            <h1 class="text-3xl font-bold text-slate-50">{{ lead.full_name }}</h1>
+            <p class="text-slate-400 mt-1">Prospecto · {{ lead.companies?.name || 'Sin empresa' }}</p>
           </div>
           <div class="flex space-x-3 items-center">
             <BaseButton
@@ -48,7 +48,7 @@
 
             <button 
               @click="router.push('/leads')"
-              class="px-4 py-2 border border-border rounded-lg text-sm font-medium text-text-secondary hover:text-text-main hover:bg-surface-card transition-colors"
+              class="px-4 py-2 border border-white/10 rounded-lg text-sm font-medium text-slate-400 hover:text-slate-50 hover:bg-slate-800/50 transition-colors"
             >
               &larr; Volver
             </button>
@@ -86,10 +86,10 @@
                         d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.347a3.5 3.5 0 00-1.035 2.475V19a2 2 0 01-2 2h-1.5a2 2 0 01-2-2v-.189a3.5 3.5 0 00-1.036-2.474l-.347-.347z"/>
                     </svg>
                   </div>
-                  <span class="text-sm font-semibold text-text-main">Sales Intelligence</span>
+                  <span class="text-sm font-semibold text-slate-50">Sales Intelligence</span>
                 </div>
                 <!-- Fecha de análisis -->
-                <div class="flex items-center gap-1.5 text-xs text-text-muted">
+                <div class="flex items-center gap-1.5 text-xs text-slate-400">
                   <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="10"/>
                     <polyline points="12 6 12 12 16 14"/>
@@ -144,7 +144,7 @@
                       {{ lead.ai_category }}
                     </span>
                   </div>
-                  <p class="text-xs text-text-secondary leading-relaxed">
+                  <p class="text-xs text-slate-400 leading-relaxed">
                     {{ getCategoryDescription(lead.ai_category) }}
                   </p>
                 </div>
@@ -152,14 +152,14 @@
               </div>
 
               <!-- Divisor -->
-              <div class="border-t border-border mb-4"></div>
+              <div class="border-t border-white/10 mb-4"></div>
 
               <!-- Perfil del Prospecto (ex Resumen) -->
               <div class="mb-4">
-                <p class="text-xs font-semibold text-text-muted uppercase tracking-wider mb-1.5">
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
                   Perfil del Prospecto
                 </p>
-                <p class="text-sm text-text-main leading-relaxed">{{ lead.ai_summary }}</p>
+                <p class="text-sm text-slate-50 leading-relaxed">{{ lead.ai_summary }}</p>
               </div>
 
               <!-- Acción Recomendada (ex Próximo paso) -->
@@ -173,7 +173,7 @@
                     Acción Recomendada
                   </p>
                 </div>
-                <p class="text-sm font-medium text-text-main pl-5">{{ lead.ai_next_step }}</p>
+                <p class="text-sm font-medium text-slate-50 pl-5">{{ lead.ai_next_step }}</p>
               </div>
             </div>
           </BaseCard>
@@ -181,15 +181,15 @@
           <!-- ESTADO: sin análisis disponible -->
           <BaseCard v-else class="p-5">
             <div class="flex items-center gap-4">
-              <div class="w-12 h-12 rounded-xl bg-surface-card flex items-center justify-center shrink-0 border border-border">
-                <svg class="w-6 h-6 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <div class="w-12 h-12 rounded-xl bg-slate-800/50 flex items-center justify-center shrink-0 border border-white/10">
+                <svg class="w-6 h-6 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                   <path stroke-linecap="round" stroke-linejoin="round"
                     d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.347a3.5 3.5 0 00-1.035 2.475V19a2 2 0 01-2 2h-1.5a2 2 0 01-2-2v-.189a3.5 3.5 0 00-1.036-2.474l-.347-.347z"/>
                 </svg>
               </div>
               <div>
-                <p class="text-sm font-semibold text-text-main">Sales Intelligence</p>
-                <p class="text-xs text-text-secondary mt-0.5">
+                <p class="text-sm font-semibold text-slate-50">Sales Intelligence</p>
+                <p class="text-xs text-slate-400 mt-0.5">
                   El análisis IA aún no está disponible para este prospecto.
                   Se generará automáticamente al registrar el lead.
                 </p>
@@ -204,29 +204,29 @@
           <!-- COLUMNA IZQUIERDA -->
           <div class="lg:col-span-1">
             <BaseCard>
-              <h2 class="font-semibold text-text-main mb-4 text-lg">Información del Prospecto</h2>
+              <h2 class="font-semibold text-slate-50 mb-4 text-lg">Información del Prospecto</h2>
               <div class="space-y-0">
                 
-                <div class="flex items-center gap-3 py-3 border-b border-border">
-                  <div class="w-8 flex justify-center text-text-muted">✉️</div>
+                <div class="flex items-center gap-3 py-3 border-b border-white/10">
+                  <div class="w-8 flex justify-center text-slate-500">✉️</div>
                   <div>
-                    <div class="text-xs text-text-muted uppercase tracking-wide">Email</div>
-                    <div class="text-sm text-text-main font-medium">{{ lead.email || '—' }}</div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wide">Email</div>
+                    <div class="text-sm text-slate-50 font-medium">{{ lead.email || '—' }}</div>
                   </div>
                 </div>
 
-                <div class="flex items-center gap-3 py-3 border-b border-border">
-                  <div class="w-8 flex justify-center text-text-muted">📞</div>
+                <div class="flex items-center gap-3 py-3 border-b border-white/10">
+                  <div class="w-8 flex justify-center text-slate-500">📞</div>
                   <div>
-                    <div class="text-xs text-text-muted uppercase tracking-wide">Teléfono</div>
-                    <div class="text-sm text-text-main font-medium">{{ lead.phone || '—' }}</div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wide">Teléfono</div>
+                    <div class="text-sm text-slate-50 font-medium">{{ lead.phone || '—' }}</div>
                   </div>
                 </div>
 
-                <div class="flex items-center gap-3 py-3 border-b border-border">
-                  <div class="w-8 flex justify-center text-text-muted">📌</div>
+                <div class="flex items-center gap-3 py-3 border-b border-white/10">
+                  <div class="w-8 flex justify-center text-slate-500">📌</div>
                   <div>
-                    <div class="text-xs text-text-muted uppercase tracking-wide">Estado</div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wide">Estado</div>
                     <div class="mt-0.5">
                       <BaseBadge :variant="getStatusVariant(lead.status)">
                         {{ lead.status ? lead.status.charAt(0).toUpperCase() + lead.status.slice(1) : '—' }}
@@ -235,27 +235,27 @@
                   </div>
                 </div>
 
-                <div class="flex items-center gap-3 py-3 border-b border-border">
-                  <div class="w-8 flex justify-center text-text-muted">🔗</div>
+                <div class="flex items-center gap-3 py-3 border-b border-white/10">
+                  <div class="w-8 flex justify-center text-slate-500">🔗</div>
                   <div>
-                    <div class="text-xs text-text-muted uppercase tracking-wide">Fuente</div>
-                    <div class="text-sm text-text-main font-medium">{{ lead.source || '—' }}</div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wide">Fuente</div>
+                    <div class="text-sm text-slate-50 font-medium">{{ lead.source || '—' }}</div>
                   </div>
                 </div>
 
-                <div class="flex items-center gap-3 py-3 border-b border-border">
-                  <div class="w-8 flex justify-center text-text-muted">🏢</div>
+                <div class="flex items-center gap-3 py-3 border-b border-white/10">
+                  <div class="w-8 flex justify-center text-slate-500">🏢</div>
                   <div>
-                    <div class="text-xs text-text-muted uppercase tracking-wide">Empresa</div>
-                    <div class="text-sm text-text-main font-medium">{{ lead.companies?.name || '—' }}</div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wide">Empresa</div>
+                    <div class="text-sm text-slate-50 font-medium">{{ lead.companies?.name || '—' }}</div>
                   </div>
                 </div>
 
                 <div class="flex items-center gap-3 py-3">
-                  <div class="w-8 flex justify-center text-text-muted">📅</div>
+                  <div class="w-8 flex justify-center text-slate-500">📅</div>
                   <div>
-                    <div class="text-xs text-text-muted uppercase tracking-wide">Registrado</div>
-                    <div class="text-sm text-text-main font-medium">{{ formatDate(lead.created_at) }}</div>
+                    <div class="text-xs text-slate-500 uppercase tracking-wide">Registrado</div>
+                    <div class="text-sm text-slate-50 font-medium">{{ formatDate(lead.created_at) }}</div>
                   </div>
                 </div>
 
@@ -269,19 +269,19 @@
             <!-- Negocios Asociados -->
             <BaseCard>
               <div class="flex justify-between items-center mb-4">
-                <h2 class="font-semibold text-text-main text-lg">Negocios</h2>
-                <span class="bg-surface-card border border-border text-text-secondary px-2.5 py-0.5 rounded-full text-xs font-medium">{{ deals.length }}</span>
+                <h2 class="font-semibold text-slate-50 text-lg">Negocios</h2>
+                <span class="bg-slate-800/50 border border-white/10 text-slate-400 px-2.5 py-0.5 rounded-full text-xs font-medium">{{ deals.length }}</span>
               </div>
               
               <div v-if="deals.length === 0" class="text-center py-4">
-                <p class="text-sm text-text-secondary">Sin negocios asociados</p>
+                <p class="text-sm text-slate-400">Sin negocios asociados</p>
               </div>
               
               <div v-else class="space-y-0">
-                <div v-for="deal in deals" :key="deal.id" class="flex justify-between items-center py-3 border-b border-border last:border-0 hover:bg-surface-card transition-colors -mx-6 px-6">
+                <div v-for="deal in deals" :key="deal.id" class="flex justify-between items-center py-3 border-b border-white/10 last:border-0 hover:bg-slate-800/50 transition-colors -mx-6 px-6">
                   <div>
-                    <div class="font-medium text-sm text-text-main">{{ deal.title }}</div>
-                    <div v-if="deal.expected_close" class="text-xs text-text-secondary mt-0.5">Cierre: {{ formatDate(deal.expected_close) }}</div>
+                    <div class="font-medium text-sm text-slate-50">{{ deal.title }}</div>
+                    <div v-if="deal.expected_close" class="text-xs text-slate-400 mt-0.5">Cierre: {{ formatDate(deal.expected_close) }}</div>
                   </div>
                   <div class="flex items-center gap-4">
                     <BaseBadge :variant="getDealStageVariant(deal.stage)">
@@ -296,22 +296,22 @@
             <!-- Feed de Actividad -->
             <BaseCard>
               <div class="flex justify-between items-center mb-4">
-                <h2 class="font-semibold text-text-main text-lg">Actividad Reciente</h2>
-                <span class="bg-surface-card border border-border text-text-secondary px-2.5 py-0.5 rounded-full text-xs font-medium">{{ activities.length }}</span>
+                <h2 class="font-semibold text-slate-50 text-lg">Actividad Reciente</h2>
+                <span class="bg-slate-800/50 border border-white/10 text-slate-400 px-2.5 py-0.5 rounded-full text-xs font-medium">{{ activities.length }}</span>
               </div>
 
               <div v-if="activities.length === 0" class="text-center py-4">
-                <p class="text-sm text-text-secondary">Sin actividad registrada</p>
+                <p class="text-sm text-slate-400">Sin actividad registrada</p>
               </div>
 
               <div v-else class="space-y-0">
-                <div v-for="activity in activities" :key="activity.id" class="flex gap-4 py-4 border-b border-border last:border-0">
-                  <div class="w-8 h-8 rounded-full bg-surface-container border border-border flex items-center justify-center shrink-0 shadow-sm text-sm">
+                <div v-for="activity in activities" :key="activity.id" class="flex gap-4 py-4 border-b border-white/10 last:border-0">
+                  <div class="w-8 h-8 rounded-full bg-slate-900/50 border border-white/10 flex items-center justify-center shrink-0 shadow-sm text-sm">
                     {{ getActivityIcon(activity.type) }}
                   </div>
                   <div class="flex-1 pt-1">
-                    <p class="text-sm text-text-main">{{ activity.description }}</p>
-                    <p class="text-xs text-text-secondary mt-1">{{ formatDate(activity.created_at) }}</p>
+                    <p class="text-sm text-slate-50">{{ activity.description }}</p>
+                    <p class="text-xs text-slate-400 mt-1">{{ formatDate(activity.created_at) }}</p>
                   </div>
                 </div>
               </div>
@@ -324,8 +324,8 @@
 
       <!-- Modal de confirmación IA -->
       <OrbitModal v-model="showAiModal" title="Calificar lead con IA">
-        <p class="text-sm text-text-secondary">
-          Se analizará el perfil de <span class="font-semibold text-text-main">{{ lead.full_name }}</span> usando Gemini para generar un score, categoría y recomendaciones de seguimiento. ¿Continuar?
+        <p class="text-sm text-slate-400">
+          Se analizará el perfil de <span class="font-semibold text-slate-50">{{ lead.full_name }}</span> usando Gemini para generar un score, categoría y recomendaciones de seguimiento. ¿Continuar?
         </p>
         
         <template #footer>
@@ -346,7 +346,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { supabase } from '../lib/supabase'
+import { LeadsService } from '../services/leads.service'
 import BaseCard from '../components/BaseCard.vue'
 import BaseBadge from '../components/BaseBadge.vue'
 import BaseButton from '../components/BaseButton.vue'
@@ -456,11 +456,7 @@ const fetchLead = async () => {
   error.value = null
 
   try {
-    const { data, error: leadError } = await supabase
-      .from('leads')
-      .select('id, full_name, email, phone, status, source, created_at, company_id, ai_score, ai_category, ai_summary, ai_next_step, ai_analyzed_at, companies(name)')
-      .eq('id', route.params.id)
-      .single()
+    const { data, error: leadError } = await LeadsService.getLeadById(route.params.id)
 
     if (leadError || !data) {
       error.value = 'No se encontró el prospecto.'
@@ -470,17 +466,8 @@ const fetchLead = async () => {
     lead.value = data
 
     const [activitiesResponse, dealsResponse] = await Promise.all([
-      supabase
-        .from('activities')
-        .select('id, type, description, created_at')
-        .eq('lead_id', route.params.id)
-        .order('created_at', { ascending: false })
-        .limit(20),
-      supabase
-        .from('deals')
-        .select('id, title, value, stage, expected_close')
-        .eq('lead_id', route.params.id)
-        .order('created_at', { ascending: false })
+      LeadsService.getLeadActivities(route.params.id),
+      LeadsService.getLeadDeals(route.params.id)
     ])
 
     if (!activitiesResponse.error) {

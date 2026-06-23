@@ -1,10 +1,10 @@
 <template>
-  <header class="h-16 bg-surface-container border-b border-border flex items-center justify-between px-6 shrink-0">
+  <header class="h-16 bg-slate-900/40 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-6 shrink-0">
     <!-- Breadcrumb -->
-    <div class="text-text-secondary text-sm">
+    <div class="text-slate-400 text-sm">
       <span>Orbit CRM</span>
-      <span class="mx-2 text-border-strong">/</span>
-      <span class="font-medium text-text-main">{{ currentRouteName }}</span>
+      <span class="mx-2 text-white/20">/</span>
+      <span class="font-medium text-slate-50">{{ currentRouteName }}</span>
     </div>
 
     <!-- Right Side: User Avatar & Logout -->
@@ -17,7 +17,7 @@
       </div>
       <button
         @click="handleLogout"
-        class="text-sm text-text-secondary hover:text-danger font-medium transition-colors px-2 py-1 rounded-lg hover:bg-danger/10"
+        class="text-sm text-slate-400 hover:text-danger font-medium transition-colors px-2 py-1 rounded-lg hover:bg-danger/10"
       >
         Salir
       </button>

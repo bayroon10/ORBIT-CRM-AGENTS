@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col h-full">
-    <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 px-8 py-10 mb-8 border border-primary/20 shadow-lg shrink-0">
+    <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 px-8 py-10 mb-8 border border-white/10 shadow-2xl shrink-0">
       <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle, #818cf8 1px, transparent 1px); background-size: 24px 24px;"></div>
       <div class="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-15" style="background: radial-gradient(circle, #6366f1, transparent 70%);"></div>
       <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -18,10 +18,10 @@
               En vivo
             </div>
           </div>
-          <h1 class="text-3xl font-bold text-text-main mb-2 tracking-tight">Feed de Actividad</h1>
-          <p class="text-text-secondary text-sm">Auditoría global de acciones y eventos del sistema.</p>
+          <h1 class="text-3xl font-bold text-slate-50 mb-2 tracking-tight">Feed de Actividad</h1>
+          <p class="text-slate-400 text-sm">Auditoría global de acciones y eventos del sistema.</p>
         </div>
-        <div class="text-sm text-text-main bg-surface-card/50 backdrop-blur-md px-3 py-1.5 rounded-lg border border-border">
+        <div class="text-sm text-slate-50 bg-slate-800/50 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10">
           Últimos 30 días
         </div>
       </div>
@@ -34,15 +34,15 @@
 
     <BaseCard :padded="false" class="flex flex-col flex-1 overflow-hidden">
       <!-- Filtros / Buscador -->
-      <div class="p-4 border-b border-border flex justify-between items-center shrink-0">
+      <div class="p-4 border-b border-white/10 flex justify-between items-center shrink-0">
         <div class="relative w-80">
           <input 
             v-model="searchQuery"
             type="text" 
             placeholder="Buscar por descripción, lead o negocio..." 
-            class="w-full pl-10 pr-4 py-2 bg-surface border border-border rounded-lg text-sm text-text-main placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+            class="w-full pl-10 pr-4 py-2 bg-slate-900/40 backdrop-blur-sm border border-white/10 rounded-lg text-sm text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
           />
-          <div class="absolute left-3 top-2.5 text-text-muted">
+          <div class="absolute left-3 top-2.5 text-slate-400">
             <!-- Search Icon -->
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           </div>
@@ -57,52 +57,53 @@
 
       <!-- Timeline Feed -->
       <div v-else-if="filteredActivities.length > 0" class="overflow-y-auto flex-1 p-6">
-        <div class="relative border-l border-border ml-3 space-y-8 pb-4">
+        <div class="relative border-l border-white/10 ml-3 space-y-8 pb-4">
           <div 
-            v-for="act in filteredActivities" 
+            v-for="(act, index) in filteredActivities" 
             :key="act.id" 
+            v-slide-up="{ delay: index * 0.05, y: -20, scale: 0.98, duration: 0.5, ease: 'back.out(1.7)' }"
             class="relative pl-8 activity-row"
           >
             <!-- Timeline Node Icon -->
             <div 
-              class="absolute -left-3.5 top-1 h-7 w-7 rounded-full flex items-center justify-center border-2 border-surface shadow-sm"
+              class="absolute -left-3.5 top-1 h-7 w-7 rounded-full flex items-center justify-center border-2 border-slate-900 shadow-sm"
               :class="getIconClass(act.type)"
             >
               <component :is="getIconComponent(act.type)" class="w-3.5 h-3.5" />
             </div>
 
             <!-- Content Card -->
-            <div class="bg-surface-card border rounded-xl p-4 transition-all duration-300"
+            <div class="bg-slate-800/50 border rounded-xl p-4 transition-all duration-300"
               :class="act.type?.includes('resumen') || act.type?.includes('ai') 
-                ? 'border-indigo-500/40 bg-gradient-to-br from-indigo-900/10 via-surface-card to-surface-card shadow-[0_0_15px_rgba(99,102,241,0.15)] hover:border-indigo-400/60' 
-                : 'border-border shadow-sm hover:border-primary/50'">
+                ? 'border-indigo-500/40 bg-gradient-to-br from-indigo-900/10 via-slate-800/50 to-slate-800/50 shadow-[0_0_15px_rgba(99,102,241,0.15)] hover:border-indigo-400/60' 
+                : 'border-white/10 shadow-sm hover:border-white/20'">
               <div class="flex justify-between items-start mb-2">
                 <div class="flex items-center gap-2">
                   <span class="text-xs font-semibold uppercase tracking-wider" :class="getTextClass(act.type)">
                     {{ formatType(act.type) }}
                   </span>
-                  <span class="text-[11px] text-text-muted">&bull;</span>
-                  <span class="text-xs text-text-secondary">{{ formatDateTime(act.created_at) }}</span>
+                  <span class="text-[11px] text-slate-500">&bull;</span>
+                  <span class="text-xs text-slate-400">{{ formatDateTime(act.created_at) }}</span>
                 </div>
               </div>
               
               <p class="text-sm font-medium mb-3 whitespace-pre-wrap leading-relaxed"
-                 :class="act.type?.includes('resumen') || act.type?.includes('ai') ? 'text-indigo-100' : 'text-text-main'">
+                 :class="act.type?.includes('resumen') || act.type?.includes('ai') ? 'text-indigo-100' : 'text-slate-50'">
                 {{ act.description }}
               </p>
 
               <!-- Relaciones -->
               <div class="flex flex-wrap gap-3 mt-3 pt-3 border-t"
-                   :class="act.type?.includes('resumen') || act.type?.includes('ai') ? 'border-indigo-500/20' : 'border-border'">
+                   :class="act.type?.includes('resumen') || act.type?.includes('ai') ? 'border-indigo-500/20' : 'border-white/10'">
                 <!-- Deal -->
-                <div v-if="act.deals || act.deal_id" class="flex items-center gap-1.5 text-xs text-text-secondary bg-surface px-2.5 py-1 rounded-md border border-border">
+                <div v-if="act.deals || act.deal_id" class="flex items-center gap-1.5 text-xs text-slate-400 bg-slate-900/50 px-2.5 py-1 rounded-md border border-white/10">
                   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
                   <span class="truncate max-w-[150px]" :class="{'italic': !act.deals}">
                     {{ act.deals?.title || 'Negocio privado' }}
                   </span>
                 </div>
                 <!-- Lead -->
-                <div v-if="act.leads || act.lead_id" class="flex items-center gap-1.5 text-xs text-text-secondary bg-surface px-2.5 py-1 rounded-md border border-border">
+                <div v-if="act.leads || act.lead_id" class="flex items-center gap-1.5 text-xs text-slate-400 bg-slate-900/50 px-2.5 py-1 rounded-md border border-white/10">
                   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                   <span class="truncate max-w-[150px]" :class="{'italic': !act.leads}">
                     {{ act.leads?.full_name || 'Contacto privado' }}
@@ -126,8 +127,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, h, nextTick } from 'vue'
-import gsap from 'gsap'
+import { ref, computed, onMounted, onUnmounted, h } from 'vue'
 import { supabase } from '../lib/supabase'
 import OrbitPageHeader from '../components/OrbitPageHeader.vue'
 import OrbitEmptyState from '../components/OrbitEmptyState.vue'
@@ -169,7 +169,7 @@ const getIconClass = (type) => {
   if (norm.includes('email') || norm.includes('correo')) return 'bg-primary/20 text-primary-300 border border-primary/30'
   if (norm.includes('nota') || norm.includes('note')) return 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30'
   if (norm.includes('reunion') || norm.includes('meeting')) return 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-  return 'bg-surface-container text-text-muted border border-border' // default/sistema
+  return 'bg-slate-900/50 text-slate-400 border border-white/10' // default/sistema
 }
 
 const getTextClass = (type) => {
@@ -179,7 +179,7 @@ const getTextClass = (type) => {
   if (norm.includes('email') || norm.includes('correo')) return 'text-primary-300'
   if (norm.includes('nota') || norm.includes('note')) return 'text-yellow-500'
   if (norm.includes('reunion') || norm.includes('meeting')) return 'text-purple-400'
-  return 'text-text-muted'
+  return 'text-slate-400'
 }
 
 // Iconos SVG inline usando la función h de Vue
@@ -278,17 +278,6 @@ onMounted(() => {
       // Prepend sin refetch
       activities.value.unshift(payload.new)
       if (activities.value.length > 50) activities.value.pop()
-      
-      // Animación obligatoria post-update
-      await nextTick()
-      
-      const firstRow = document.querySelector('.activity-row')
-      if (firstRow) {
-        gsap.fromTo(firstRow,
-          { opacity: 0, y: -20, scale: 0.98 },
-          { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: 'back.out(1.7)' }
-        )
-      }
     })
     .subscribe((status) => {
       channelStatus.value = status
@@ -298,6 +287,7 @@ onMounted(() => {
 onUnmounted(() => {
   if (channel) {
     supabase.removeChannel(channel)
+    channel = null
   }
 })
 </script>

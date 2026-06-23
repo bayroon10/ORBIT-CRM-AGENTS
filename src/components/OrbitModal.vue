@@ -3,17 +3,17 @@
     <Transition name="modal">
       <div
         v-if="modelValue"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4"
         @click.self="close"
       >
-        <div class="bg-surface-container rounded-xl shadow-lg border border-border-strong max-w-lg w-full flex flex-col max-h-[90vh]">
+        <div class="bg-slate-900/40 backdrop-blur-md rounded-xl shadow-2xl border border-white/10 max-w-lg w-full flex flex-col max-h-[90vh]">
 
           <!-- Header -->
-          <div class="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
-            <h3 class="text-base font-semibold text-text-main">{{ title }}</h3>
+          <div class="flex items-center justify-between px-6 py-4 border-b border-white/10 shrink-0">
+            <h3 class="text-base font-semibold text-slate-50">{{ title }}</h3>
             <button
               @click="close"
-              class="text-text-muted hover:text-text-main transition-colors focus:outline-none rounded-lg p-1 hover:bg-surface-card"
+              class="text-slate-400 hover:text-white transition-colors focus:outline-none rounded-lg p-1 hover:bg-slate-800/50"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -28,7 +28,7 @@
           </div>
 
           <!-- Footer -->
-          <div v-if="$slots.footer" class="px-6 py-4 border-t border-border bg-surface/50 rounded-b-xl shrink-0">
+          <div v-if="$slots.footer" class="px-6 py-4 border-t border-white/10 bg-slate-900/50 rounded-b-xl shrink-0">
             <slot name="footer"></slot>
           </div>
 

@@ -1,10 +1,10 @@
 <template>
-  <div class="metric-card card-3d animate-fadeInUp relative overflow-hidden bg-surface-card rounded-xl p-5 border border-border shadow-sm cursor-default group">
+  <div class="metric-card card-3d animate-fadeInUp relative overflow-hidden bg-slate-900/40 backdrop-blur-md rounded-xl p-5 border border-white/10 shadow-2xl cursor-default group">
     <!-- Línea de acento superior — color único indigo -->
     <div class="absolute top-0 left-0 right-0 h-0.5 rounded-t-xl bg-gradient-to-r from-primary/50 via-primary to-primary-300 opacity-80"></div>
 
     <div class="flex items-start justify-between mb-5">
-      <p class="text-2xs font-semibold uppercase tracking-widest text-text-muted">{{ title }}</p>
+      <p class="text-2xs font-semibold uppercase tracking-widest text-slate-400">{{ title }}</p>
       <!-- Ícono -->
       <div class="w-9 h-9 rounded-lg bg-primary/15 border border-primary/20 flex items-center justify-center text-primary-300 transition-transform duration-200 group-hover:scale-110">
         <!-- users -->
@@ -20,7 +20,7 @@
 
     <!-- Valor principal -->
     <div
-      class="metric-counter animate-countUp text-3xl font-bold tracking-tight text-text-main mb-1"
+      class="metric-counter animate-countUp text-3xl font-bold tracking-tight text-slate-50 mb-1"
       :data-target="typeof value === 'number' ? value : 0"
     >
       {{ value }}
@@ -34,7 +34,7 @@
       >
         {{ trend > 0 ? '↑ +' : trend < 0 ? '↓ ' : '→ ' }}{{ trend !== 0 ? Math.abs(trend) + '%' : 'Sin cambios' }}
       </span>
-      <span class="text-xs text-text-muted">vs mes anterior</span>
+      <span class="text-xs text-slate-400">vs mes anterior</span>
     </div>
   </div>
 </template>

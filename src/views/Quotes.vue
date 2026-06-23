@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col h-full">
     <!-- ── Hero Header ── -->
-    <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 px-8 py-10 mb-8 border border-primary/20 shadow-lg shrink-0">
+    <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 px-8 py-10 mb-8 border border-white/10 shadow-2xl shrink-0">
       <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle, #818cf8 1px, transparent 1px); background-size: 24px 24px;"></div>
       <div class="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-15" style="background: radial-gradient(circle, #6366f1, transparent 70%);"></div>
       <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -9,8 +9,8 @@
           <div class="flex items-center gap-2 mb-3">
             <BaseBadge variant="primary">Comercial</BaseBadge>
           </div>
-          <h1 class="text-3xl font-bold text-text-main mb-2 tracking-tight">Cotizaciones</h1>
-          <p class="text-text-secondary text-sm">Gestiona y haz seguimiento de todas tus propuestas comerciales.</p>
+          <h1 class="text-3xl font-bold text-slate-50 mb-2 tracking-tight">Cotizaciones</h1>
+          <p class="text-slate-400 text-sm">Gestiona y haz seguimiento de todas tus propuestas comerciales.</p>
         </div>
         <BaseButton @click="showModal = true" size="lg">Nueva Cotización</BaseButton>
       </div>
@@ -24,15 +24,15 @@
     <!-- ── Table Card ── -->
     <BaseCard :padded="false" class="flex flex-col flex-1 overflow-hidden">
       <!-- Filtros / Buscador -->
-      <div class="p-4 border-b border-border flex justify-between items-center shrink-0">
+      <div class="p-4 border-b border-white/10 flex justify-between items-center shrink-0">
         <div class="relative w-72">
           <input
             v-model="searchQuery"
             type="text"
             placeholder="Buscar por código..."
-            class="w-full pl-10 pr-4 py-2 bg-surface border border-border rounded-lg text-sm text-text-main placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+            class="w-full pl-10 pr-4 py-2 bg-slate-900/40 backdrop-blur-sm border border-white/10 rounded-lg text-sm text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
           />
-          <div class="absolute left-3 top-2.5 text-text-muted">
+          <div class="absolute left-3 top-2.5 text-slate-400">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           </div>
         </div>
@@ -47,26 +47,26 @@
       <!-- Table -->
       <div v-else-if="filteredQuotes.length > 0" class="overflow-x-auto overflow-y-auto flex-1">
         <table class="w-full text-left text-sm">
-          <thead class="bg-surface-container text-text-muted font-semibold sticky top-0 z-10">
+          <thead class="bg-slate-950/50 backdrop-blur-md text-slate-400 font-semibold sticky top-0 z-10">
             <tr>
-              <th class="px-6 py-4 border-b border-border uppercase tracking-wider text-xs">Código</th>
-              <th class="px-6 py-4 border-b border-border uppercase tracking-wider text-xs">Negocio</th>
-              <th class="px-6 py-4 border-b border-border uppercase tracking-wider text-xs">Monto</th>
-              <th class="px-6 py-4 border-b border-border uppercase tracking-wider text-xs">Estado</th>
-              <th class="px-6 py-4 border-b border-border uppercase tracking-wider text-xs hidden md:table-cell">Válida Hasta</th>
+              <th class="px-6 py-4 border-b border-white/10 uppercase tracking-wider text-xs">Código</th>
+              <th class="px-6 py-4 border-b border-white/10 uppercase tracking-wider text-xs">Negocio</th>
+              <th class="px-6 py-4 border-b border-white/10 uppercase tracking-wider text-xs">Monto</th>
+              <th class="px-6 py-4 border-b border-white/10 uppercase tracking-wider text-xs">Estado</th>
+              <th class="px-6 py-4 border-b border-white/10 uppercase tracking-wider text-xs hidden md:table-cell">Válida Hasta</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-border">
+          <tbody class="divide-y divide-white/10">
             <tr
               v-for="quote in filteredQuotes"
               :key="quote.id"
               @click="router.push(`/quotes/${quote.id}`)"
-              class="hover:bg-surface-container/60 transition-colors cursor-pointer group"
+              class="hover:bg-slate-900/50 transition-colors cursor-pointer group"
             >
               <td class="px-6 py-4">
-                <div class="font-medium text-text-main group-hover:text-primary-300 transition-colors">{{ quote.quote_number }}</div>
+                <div class="font-medium text-slate-50 group-hover:text-primary-300 transition-colors">{{ quote.quote_number }}</div>
               </td>
-              <td class="px-6 py-4 text-text-secondary">
+              <td class="px-6 py-4 text-slate-400">
                 {{ quote.deals?.title || '—' }}
               </td>
               <td class="px-6 py-4 font-semibold text-success">
@@ -77,7 +77,7 @@
                   {{ translateStatus(quote.status) }}
                 </BaseBadge>
               </td>
-              <td class="px-6 py-4 text-text-secondary whitespace-nowrap hidden md:table-cell">
+              <td class="px-6 py-4 text-slate-400 whitespace-nowrap hidden md:table-cell">
                 {{ formatDate(quote.valid_until) }}
               </td>
             </tr>
@@ -103,17 +103,17 @@
           <span>{{ formError }}</span>
         </div>
 
-        <div class="bg-surface-card border border-border p-3 rounded-lg text-sm text-text-secondary mb-4">
+        <div class="bg-slate-800/50 border border-white/10 p-3 rounded-lg text-sm text-slate-400 mb-4">
           <svg class="inline-block w-4 h-4 mr-1 mb-0.5 text-primary-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          El código <span class="font-bold text-text-main">Quote Number</span> se generará automáticamente tras guardar.
+          El código <span class="font-bold text-slate-50">Quote Number</span> se generará automáticamente tras guardar.
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-text-main mb-1">Negocio Asociado (Deal) *</label>
+          <label class="block text-sm font-medium text-slate-50 mb-1">Negocio Asociado (Deal) *</label>
           <select
             v-model="form.deal_id"
             required
-            class="w-full border border-border-strong rounded-lg px-3 py-2 text-sm bg-surface text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+            class="w-full border border-white/20 rounded-lg px-3 py-2 text-sm bg-slate-900/50 text-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
           >
             <option value="" disabled>Seleccione un negocio</option>
             <option v-for="deal in availableDeals" :key="deal.id" :value="deal.id">
@@ -123,7 +123,7 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-text-main mb-1">Monto *</label>
+          <label class="block text-sm font-medium text-slate-50 mb-1">Monto *</label>
           <input
             v-model="form.amount"
             type="number"
@@ -131,15 +131,15 @@
             step="0.01"
             required
             placeholder="0.00"
-            class="w-full border border-border-strong rounded-lg px-3 py-2 text-sm bg-surface text-text-main placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+            class="w-full border border-white/20 rounded-lg px-3 py-2 text-sm bg-slate-900/50 text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
           />
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-text-main mb-1">Estado</label>
+          <label class="block text-sm font-medium text-slate-50 mb-1">Estado</label>
           <select
             v-model="form.status"
-            class="w-full border border-border-strong rounded-lg px-3 py-2 text-sm bg-surface text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+            class="w-full border border-white/20 rounded-lg px-3 py-2 text-sm bg-slate-900/50 text-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
           >
             <option value="draft">Borrador</option>
             <option value="sent">Enviada</option>
@@ -149,11 +149,11 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-text-main mb-1">Válida Hasta</label>
+          <label class="block text-sm font-medium text-slate-50 mb-1">Válida Hasta</label>
           <input
             v-model="form.valid_until"
             type="date"
-            class="w-full border border-border-strong rounded-lg px-3 py-2 text-sm bg-surface text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+            class="w-full border border-white/20 rounded-lg px-3 py-2 text-sm bg-slate-900/50 text-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
           />
         </div>
       </form>
@@ -173,7 +173,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { supabase } from '../lib/supabase'
+import { QuotesService } from '../services/quotes.service'
 import OrbitEmptyState from '../components/OrbitEmptyState.vue'
 import OrbitModal from '../components/OrbitModal.vue'
 import BaseCard from '../components/BaseCard.vue'
@@ -225,14 +225,12 @@ const submitQuote = async () => {
   formError.value = null
 
   try {
-    const { error: insertError } = await supabase
-      .from('quotes')
-      .insert({
-        deal_id: form.deal_id,
-        amount: parseFloat(form.amount),
-        status: form.status,
-        valid_until: form.valid_until || null
-      })
+    const { error: insertError } = await QuotesService.createQuote({
+      deal_id: form.deal_id,
+      amount: parseFloat(form.amount),
+      status: form.status,
+      valid_until: form.valid_until || null
+    })
 
     if (insertError) throw insertError
 
@@ -294,19 +292,13 @@ const fetchQuotes = async () => {
   loading.value = true
   error.value = null
   try {
-    const { data, error: err } = await supabase
-      .from('quotes')
-      .select('id, quote_number, deal_id, amount, status, valid_until, created_at, deals(title)')
-      .order('created_at', { ascending: false })
+    const { data, error: err } = await QuotesService.getQuotes()
 
     if (err) throw err
     quotes.value = data || []
     
     // Also fetch deals for the modal
-    const { data: dealsData } = await supabase
-      .from('deals')
-      .select('id, title')
-      .order('title', { ascending: true })
+    const { data: dealsData } = await QuotesService.getDealsOptions()
       
     if (dealsData) {
       availableDeals.value = dealsData

@@ -8,10 +8,10 @@
   -->
   <div
     :class="[
-      'relative bg-surface-card border border-border rounded-xl overflow-hidden',
+      'relative bg-slate-900/40 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden',
       padded && 'p-5',
       hover  && 'card-3d cursor-pointer',
-      !flush && 'shadow-sm',
+      !flush && 'shadow-2xl',
     ]"
   >
     <slot />

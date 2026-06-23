@@ -18,15 +18,25 @@
 
     <!-- Data State -->
     <template v-else-if="quote">
-      <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 px-8 py-10 mb-8 shadow-lg border border-primary/20 shrink-0">
-        <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle, #818cf8 1px, transparent 1px); background-size: 24px 24px;"></div>
-        <div class="absolute -top-20 -right-20 w-80 h-80 rounded-full opacity-15 bg-primary blur-3xl"></div>
+      <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 px-8 py-10 mb-8 shadow-2xl border border-white/10 shrink-0 print:bg-none print:bg-white print:text-slate-900 print:shadow-none print:border-none print:p-0 print:m-0">
+        <div class="absolute inset-0 opacity-10 print:!hidden" style="background-image: radial-gradient(circle, #818cf8 1px, transparent 1px); background-size: 24px 24px;"></div>
+        <div class="absolute -top-20 -right-20 w-80 h-80 rounded-full opacity-15 bg-primary blur-3xl print:!hidden"></div>
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 class="text-3xl font-bold text-text-main">{{ quote.quote_number }}</h1>
-            <p class="text-text-secondary mt-1">Cotización · {{ quote.deals?.title || 'Sin negocio' }}</p>
+            <h1 class="text-3xl font-bold text-slate-50 print:text-slate-900">{{ quote.quote_number }}</h1>
+            <p class="text-slate-400 mt-1 print:text-slate-700">Cotización · {{ quote.deals?.title || 'Sin negocio' }}</p>
           </div>
-          <div class="flex space-x-3 items-center">
+          <div class="flex space-x-3 items-center print:!hidden">
+            <BaseButton
+              variant="secondary"
+              @click="printPDF"
+              class="bg-slate-800 text-slate-50 border border-slate-700 hover:bg-slate-700"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 inline-block -mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              Exportar PDF
+            </BaseButton>
             <BaseBadge :variant="getStatusVariant(quote.status)" class="mr-2">
               {{ translateStatus(quote.status) }}
             </BaseBadge>
@@ -45,7 +55,7 @@
             </BaseButton>
             <button 
               @click="router.push('/quotes')"
-              class="px-4 py-2 border border-border rounded-lg text-sm font-medium text-text-secondary hover:text-text-main hover:bg-surface-card transition-colors"
+              class="px-4 py-2 border border-white/20 rounded-lg text-sm font-medium text-slate-400 hover:text-slate-50 hover:bg-slate-800/50 transition-colors"
             >
               &larr; Volver
             </button>
@@ -58,31 +68,31 @@
           
           <!-- COLUMNA IZQUIERDA -->
           <div class="space-y-6">
-            <BaseCard>
-              <h2 class="font-semibold text-text-main mb-4 text-lg">Detalles Comerciales</h2>
+            <BaseCard class="print:shadow-none print:border-none print:p-0">
+              <h2 class="font-semibold text-slate-50 mb-4 text-lg print:text-slate-900">Detalles Comerciales</h2>
               <div class="space-y-0">
                 
-                <div class="flex items-center justify-between py-3 border-b border-border">
-                  <div class="text-xs text-text-muted uppercase tracking-wide">Monto</div>
-                  <div class="text-lg text-success font-bold">{{ formatCurrency(quote.amount) }}</div>
+                <div class="flex items-center justify-between py-3 border-b border-white/10 print:border-slate-200">
+                  <div class="text-xs text-slate-500 uppercase tracking-wide print:text-slate-600">Monto</div>
+                  <div class="text-lg text-success font-bold print:text-slate-900">{{ formatCurrency(quote.amount) }}</div>
                 </div>
 
-                <div class="flex items-center justify-between py-3 border-b border-border">
-                  <div class="text-xs text-text-muted uppercase tracking-wide">Estado</div>
-                  <div class="text-sm font-medium text-text-main">{{ translateStatus(quote.status) }}</div>
+                <div class="flex items-center justify-between py-3 border-b border-white/10 print:border-slate-200">
+                  <div class="text-xs text-slate-500 uppercase tracking-wide print:text-slate-600">Estado</div>
+                  <div class="text-sm font-medium text-slate-50 print:text-slate-900">{{ translateStatus(quote.status) }}</div>
                 </div>
 
-                <div class="flex items-center justify-between py-3 border-b border-border">
-                  <div class="text-xs text-text-muted uppercase tracking-wide">Válida Hasta</div>
-                  <div class="text-sm font-medium" :class="isPastDue(quote.valid_until) ? 'text-danger' : 'text-text-main'">
+                <div class="flex items-center justify-between py-3 border-b border-white/10 print:border-slate-200">
+                  <div class="text-xs text-slate-500 uppercase tracking-wide print:text-slate-600">Válida Hasta</div>
+                  <div class="text-sm font-medium print:text-slate-900" :class="isPastDue(quote.valid_until) ? 'text-danger' : 'text-slate-50'">
                     {{ formatDate(quote.valid_until) }}
                   </div>
                 </div>
 
-                <div class="flex items-center justify-between py-3 border-b border-border">
-                  <div class="text-xs text-text-muted uppercase tracking-wide">Negocio</div>
-                  <div class="text-sm text-text-main font-medium">
-                    <router-link v-if="quote.deal_id" :to="`/deals/${quote.deal_id}`" class="text-primary-300 hover:underline">
+                <div class="flex items-center justify-between py-3 border-b border-white/10 print:border-slate-200">
+                  <div class="text-xs text-slate-500 uppercase tracking-wide print:text-slate-600">Negocio</div>
+                  <div class="text-sm text-slate-50 font-medium print:text-slate-900">
+                    <router-link v-if="quote.deal_id" :to="`/deals/${quote.deal_id}`" class="text-primary-300 hover:underline print:text-slate-900 print:no-underline">
                       {{ quote.deals?.title }}
                     </router-link>
                     <span v-else>—</span>
@@ -90,8 +100,8 @@
                 </div>
 
                 <div class="flex items-center justify-between py-3">
-                  <div class="text-xs text-text-muted uppercase tracking-wide">Creada</div>
-                  <div class="text-sm text-text-main font-medium">{{ formatDate(quote.created_at) }}</div>
+                  <div class="text-xs text-slate-500 uppercase tracking-wide print:text-slate-600">Creada</div>
+                  <div class="text-sm text-slate-50 font-medium print:text-slate-900">{{ formatDate(quote.created_at) }}</div>
                 </div>
 
               </div>
@@ -113,17 +123,17 @@
             <span>{{ editError }}</span>
           </div>
 
-          <div class="bg-surface-card border border-border p-3 rounded-lg text-sm text-text-secondary mb-4">
+          <div class="bg-slate-800/50 border border-white/10 p-3 rounded-lg text-sm text-slate-400 mb-4">
             <svg class="inline-block w-4 h-4 mr-1 mb-0.5 text-primary-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            El número de cotización <span class="font-bold text-text-main">{{ quote.quote_number }}</span> no puede ser modificado.
+            El número de cotización <span class="font-bold text-slate-50">{{ quote.quote_number }}</span> no puede ser modificado.
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-text-main mb-1">Negocio Asociado (Deal) *</label>
+            <label class="block text-sm font-medium text-slate-50 mb-1">Negocio Asociado (Deal) *</label>
             <select
               v-model="editForm.deal_id"
               required
-              class="w-full border border-border-strong rounded-lg px-3 py-2 text-sm bg-surface text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+              class="w-full border border-white/20 rounded-lg px-3 py-2 text-sm bg-slate-900/50 text-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
             >
               <option v-for="deal in availableDeals" :key="deal.id" :value="deal.id">
                 {{ deal.title }}
@@ -132,13 +142,13 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-text-main mb-1">Monto *</label>
-            <input v-model="editForm.amount" type="number" min="0" step="0.01" required class="w-full border border-border-strong rounded-lg px-3 py-2 text-sm bg-surface text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all" />
+            <label class="block text-sm font-medium text-slate-50 mb-1">Monto *</label>
+            <input v-model="editForm.amount" type="number" min="0" step="0.01" required class="w-full border border-white/20 rounded-lg px-3 py-2 text-sm bg-slate-900/50 text-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all" />
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-text-main mb-1">Estado</label>
-            <select v-model="editForm.status" class="w-full border border-border-strong rounded-lg px-3 py-2 text-sm bg-surface text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all">
+            <label class="block text-sm font-medium text-slate-50 mb-1">Estado</label>
+            <select v-model="editForm.status" class="w-full border border-white/20 rounded-lg px-3 py-2 text-sm bg-slate-900/50 text-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all">
               <option value="draft">Borrador</option>
               <option value="sent">Enviada</option>
               <option value="accepted">Aceptada</option>
@@ -147,8 +157,8 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-text-main mb-1">Válida Hasta</label>
-            <input v-model="editForm.valid_until" type="date" class="w-full border border-border-strong rounded-lg px-3 py-2 text-sm bg-surface text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all" />
+            <label class="block text-sm font-medium text-slate-50 mb-1">Válida Hasta</label>
+            <input v-model="editForm.valid_until" type="date" class="w-full border border-white/20 rounded-lg px-3 py-2 text-sm bg-slate-900/50 text-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all" />
           </div>
         </form>
         <template #footer>
@@ -164,8 +174,8 @@
         <div class="space-y-4">
           <div class="bg-danger/10 border border-danger/20 rounded-lg p-4">
             <h3 class="text-danger font-semibold mb-2">⚠ Acción irreversible</h3>
-            <p class="text-sm text-text-secondary">
-              Estás a punto de eliminar la cotización <span class="font-bold text-text-main">{{ quote.quote_number }}</span>. 
+            <p class="text-sm text-slate-400">
+              Estás a punto de eliminar la cotización <span class="font-bold text-slate-50">{{ quote.quote_number }}</span>. 
               Esta acción no se puede deshacer.
             </p>
           </div>
@@ -186,7 +196,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { supabase } from '../lib/supabase'
+import { QuotesService } from '../services/quotes.service'
 import BaseCard from '../components/BaseCard.vue'
 import BaseBadge from '../components/BaseBadge.vue'
 import BaseButton from '../components/BaseButton.vue'
@@ -194,6 +204,10 @@ import OrbitModal from '../components/OrbitModal.vue'
 
 const route = useRoute()
 const router = useRouter()
+
+const printPDF = () => {
+  window.print()
+}
 
 const quote = ref(null)
 const availableDeals = ref([])
@@ -221,17 +235,10 @@ const fetchQuoteData = async () => {
   error.value = null
 
   try {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
-      const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-      if (profile) userRole.value = profile.role
-    }
+    const role = await QuotesService.getUserRole()
+    if (role) userRole.value = role
 
-    const { data, error: fetchError } = await supabase
-      .from('quotes')
-      .select('*, deals(title)')
-      .eq('id', route.params.id)
-      .single()
+    const { data, error: fetchError } = await QuotesService.getQuoteById(route.params.id)
 
     if (fetchError || !data) {
       error.value = 'No se encontró la cotización.'
@@ -247,7 +254,7 @@ const fetchQuoteData = async () => {
     editForm.valid_until = data.valid_until || ''
 
     // Fetch deals for dropdown
-    const { data: dealsData } = await supabase.from('deals').select('id, title').order('title', { ascending: true })
+    const { data: dealsData } = await QuotesService.getDealsOptions()
     if (dealsData) availableDeals.value = dealsData
 
   } catch (err) {
@@ -267,15 +274,12 @@ const updateQuote = async () => {
   editError.value = null
 
   try {
-    const { error: updError } = await supabase
-      .from('quotes')
-      .update({
-        deal_id: editForm.deal_id,
-        amount: parseFloat(editForm.amount),
-        status: editForm.status,
-        valid_until: editForm.valid_until || null
-      })
-      .eq('id', route.params.id)
+    const { error: updError } = await QuotesService.updateQuote(route.params.id, {
+      deal_id: editForm.deal_id,
+      amount: parseFloat(editForm.amount),
+      status: editForm.status,
+      valid_until: editForm.valid_until || null
+    })
 
     if (updError) throw updError
 
@@ -294,10 +298,7 @@ const deleteQuote = async () => {
   deleteError.value = null
 
   try {
-    const { error: delError } = await supabase
-      .from('quotes')
-      .delete()
-      .eq('id', route.params.id)
+    const { error: delError } = await QuotesService.deleteQuote(route.params.id)
 
     if (delError) throw delError
 
@@ -345,3 +346,12 @@ onMounted(() => {
   fetchQuoteData()
 })
 </script>
+
+<style scoped>
+@media print {
+  @page {
+    margin: 2cm;
+    size: letter;
+  }
+}
+</style>

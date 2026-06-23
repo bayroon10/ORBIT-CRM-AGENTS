@@ -39,13 +39,13 @@
       <BaseCard v-for="automation in automations" :key="automation.id" class="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div class="flex-1">
           <div class="flex items-center gap-3 mb-1.5">
-            <h3 class="text-lg font-semibold text-text-main">{{ automation.name }}</h3>
+            <h3 class="text-lg font-semibold text-slate-50">{{ automation.name }}</h3>
             <BaseBadge :variant="getStatusVariant(automation.last_run_status)">
               {{ automation.last_run_status || 'Sin ejecución' }}
             </BaseBadge>
           </div>
-          <p class="text-sm text-text-secondary mb-2">{{ automation.description || 'Sin descripción' }}</p>
-          <p class="text-xs text-text-muted">
+          <p class="text-sm text-slate-400 mb-2">{{ automation.description || 'Sin descripción' }}</p>
+          <p class="text-xs text-slate-500">
             Última ejecución: {{ formatRelativeTime(automation.last_run_at) }}
           </p>
         </div>
@@ -62,7 +62,7 @@
               :checked="automation.is_active"
               @change.prevent="requestToggle(automation)"
             >
-            <div class="w-11 h-6 bg-surface-overlay border border-border-strong rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-success peer-checked:border-success"></div>
+            <div class="w-11 h-6 bg-slate-900/50 border border-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-300 after:border-slate-400 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-success peer-checked:border-success"></div>
           </label>
         </div>
       </BaseCard>
@@ -70,7 +70,7 @@
 
     <!-- Modal Confirmación Toggle -->
     <OrbitModal v-model="showToggleModal" title="Confirmar cambio">
-      <p class="text-sm text-text-main mb-4">
+      <p class="text-sm text-slate-50 mb-4">
         ¿Estás seguro de que deseas {{ targetAutomation?.is_active ? 'desactivar' : 'activar' }} la automatización <strong>{{ targetAutomation?.name }}</strong>?
       </p>
       <template #footer>
@@ -98,16 +98,16 @@
         />
       </div>
       <div v-else class="space-y-4">
-        <div v-for="log in historyLogs" :key="log.id" class="p-4 bg-surface-card border border-border rounded-lg text-sm">
-          <div class="flex items-center justify-between mb-3 border-b border-border pb-2">
+        <div v-for="log in historyLogs" :key="log.id" class="p-4 bg-slate-800/50 border border-white/10 rounded-lg text-sm">
+          <div class="flex items-center justify-between mb-3 border-b border-white/10 pb-2">
             <BaseBadge :variant="getStatusVariant(log.status)">
               {{ log.status || 'Desconocido' }}
             </BaseBadge>
-            <span class="text-xs text-text-muted">{{ formatDate(log.created_at) }}</span>
+            <span class="text-xs text-slate-500">{{ formatDate(log.created_at) }}</span>
           </div>
           <div class="mt-2">
-            <span class="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1 block">Payload</span>
-            <div class="bg-surface-container rounded-md p-2 overflow-x-auto max-h-48 overflow-y-auto text-xs text-text-main border border-border/50">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 block">Payload</span>
+            <div class="bg-slate-900/50 rounded-md p-2 overflow-x-auto max-h-48 overflow-y-auto text-xs text-slate-50 border border-white/10">
               <pre class="font-mono m-0 whitespace-pre-wrap">{{ formatPayload(log.payload) }}</pre>
             </div>
           </div>

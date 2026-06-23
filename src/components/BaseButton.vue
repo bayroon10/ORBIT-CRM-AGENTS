@@ -49,10 +49,10 @@ const sizeClass = computed(() => {
 
 const variantClass = computed(() => {
   const map = {
-    primary:   'bg-primary hover:bg-primary-600 text-white shadow-sm',
-    secondary: 'bg-surface-card border border-border-strong text-text-main hover:bg-surface-overlay',
-    ghost:     'text-text-secondary hover:text-text-main hover:bg-surface-container',
-    danger:    'bg-danger/15 border border-danger/30 text-danger hover:bg-danger/25',
+    primary:   'bg-primary hover:bg-primary-600 text-white shadow-lg',
+    secondary: 'bg-slate-800/50 backdrop-blur-md border border-white/10 text-slate-50 hover:bg-slate-700/50',
+    ghost:     'text-slate-400 hover:text-white hover:bg-slate-800/50',
+    danger:    'bg-danger/15 border border-danger/30 text-danger hover:bg-danger/25 backdrop-blur-md',
   }
   return map[props.variant] || map.primary
 })

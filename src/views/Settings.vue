@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col h-full relative overflow-x-hidden">
     <!-- Hero Header -->
-    <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 px-8 py-10 mb-8 border border-primary/20 shadow-lg shrink-0">
+    <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 px-8 py-10 mb-8 border border-white/10 shadow-2xl shrink-0">
       <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle, #818cf8 1px, transparent 1px); background-size: 24px 24px;"></div>
       <div class="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-15" style="background: radial-gradient(circle, #6366f1, transparent 70%);"></div>
       <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -9,8 +9,8 @@
           <div class="flex items-center gap-2 mb-3">
             <BaseBadge variant="primary">Sistema</BaseBadge>
           </div>
-          <h1 class="text-3xl font-bold text-text-main mb-2 tracking-tight">Configuración</h1>
-          <p class="text-text-secondary text-sm">Ajustes generales, preferencias e información del espacio de trabajo.</p>
+          <h1 class="text-3xl font-bold text-slate-50 mb-2 tracking-tight">Configuración</h1>
+          <p class="text-slate-400 text-sm">Ajustes generales, preferencias e información del espacio de trabajo.</p>
         </div>
       </div>
     </div>
@@ -33,7 +33,7 @@
         <button 
           @click="activeTab = 'General'"
           class="flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all"
-          :class="activeTab === 'General' ? 'bg-primary/10 text-primary-300 border border-primary/20' : 'text-text-secondary hover:bg-surface-card hover:text-text-main border border-transparent'"
+          :class="activeTab === 'General' ? 'bg-primary-500/20 text-primary-300 border border-primary-500/30' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-50 border border-transparent'"
         >
           <div class="flex items-center gap-3">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
@@ -43,7 +43,7 @@
 
         <router-link 
           to="/settings/providers"
-          class="flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium text-text-secondary hover:bg-surface-card hover:text-text-main border border-transparent transition-all"
+          class="flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-800/50 hover:text-slate-50 border border-transparent transition-all"
         >
           <div class="flex items-center gap-3">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
@@ -51,30 +51,30 @@
           </div>
         </router-link>
 
-        <div class="flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium text-text-secondary opacity-60 cursor-not-allowed border border-transparent">
+        <div class="flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium text-slate-400 opacity-60 cursor-not-allowed border border-transparent">
           <div class="flex items-center gap-3">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
             Notificaciones
           </div>
-          <span class="text-[10px] bg-surface-container px-2 py-0.5 rounded-full font-bold uppercase text-text-muted">Pronto</span>
+          <span class="text-[10px] bg-slate-900/50 border border-white/10 px-2 py-0.5 rounded-full font-bold uppercase text-slate-500">Pronto</span>
         </div>
 
-        <div class="flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium text-text-secondary opacity-60 cursor-not-allowed border border-transparent">
+        <div class="flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium text-slate-400 opacity-60 cursor-not-allowed border border-transparent">
           <div class="flex items-center gap-3">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
             Seguridad
           </div>
-          <span class="text-[10px] bg-surface-container px-2 py-0.5 rounded-full font-bold uppercase text-text-muted">Pronto</span>
+          <span class="text-[10px] bg-slate-900/50 border border-white/10 px-2 py-0.5 rounded-full font-bold uppercase text-slate-500">Pronto</span>
         </div>
 
         <!-- Plan Info Card -->
-        <div class="mt-6 p-5 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 relative overflow-hidden">
+        <div class="mt-6 p-5 rounded-2xl bg-slate-800/50 border border-white/10 relative overflow-hidden">
           <div class="absolute -right-4 -top-4 w-16 h-16 bg-primary/20 rounded-full blur-xl pointer-events-none"></div>
           <div class="flex items-center gap-2 mb-2 relative z-10">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary-300"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
             <span class="text-xs font-bold text-primary-300 uppercase tracking-wide">Plan Profesional</span>
           </div>
-          <p class="text-xs text-text-secondary leading-relaxed mb-4 relative z-10">
+          <p class="text-xs text-slate-400 leading-relaxed mb-4 relative z-10">
             Tienes acceso a todas las funcionalidades avanzadas. El próximo ciclo de facturación es el 15 de Noviembre.
           </p>
           <button class="w-full py-1.5 text-xs font-medium text-primary-300 hover:bg-primary/10 rounded-lg transition-colors border border-primary/20 relative z-10">
@@ -85,10 +85,10 @@
 
       <!-- Panel de Contenido -->
       <BaseCard :padded="false" class="flex-1 flex flex-col h-fit max-w-3xl overflow-hidden">
-        <div class="p-6 border-b border-border flex items-center justify-between bg-surface-container">
+        <div class="p-6 border-b border-white/10 flex items-center justify-between bg-slate-900/50">
           <div>
-            <h2 class="text-xl font-bold text-text-main">Ajustes Generales</h2>
-            <p class="text-sm text-text-secondary mt-1">Configura las preferencias de tu espacio de trabajo.</p>
+            <h2 class="text-xl font-bold text-slate-50">Ajustes Generales</h2>
+            <p class="text-sm text-slate-400 mt-1">Configura las preferencias de tu espacio de trabajo.</p>
           </div>
           <BaseButton @click="saveSettings">Guardar cambios</BaseButton>
         </div>
@@ -96,68 +96,68 @@
         <div class="p-6 space-y-8">
           <!-- Sección: Perfil del Espacio -->
           <div>
-            <h3 class="text-base font-semibold text-text-main mb-4 flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-text-muted"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <h3 class="text-base font-semibold text-slate-50 mb-4 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
               Perfil del Espacio
             </h3>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div class="col-span-1 md:col-span-2">
-                <label class="block text-sm font-medium text-text-main mb-1.5">Nombre del sistema *</label>
+                <label class="block text-sm font-medium text-slate-50 mb-1.5">Nombre del sistema *</label>
                 <input 
                   v-model="form.systemName"
                   type="text" 
-                  class="w-full bg-surface border border-border rounded-lg px-4 py-2.5 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                  class="w-full bg-slate-900/40 backdrop-blur-sm border border-white/10 rounded-lg px-4 py-2.5 text-sm text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all"
                   placeholder="Ej: Orbit CRM"
                 />
               </div>
             </div>
           </div>
 
-          <hr class="border-border" />
+          <hr class="border-white/10" />
 
           <!-- Sección: Preferencias Regionales -->
           <div>
-            <h3 class="text-base font-semibold text-text-main mb-4 flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-text-muted"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+            <h3 class="text-base font-semibold text-slate-50 mb-4 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-500"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
               Preferencias Regionales
             </h3>
             
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
-                <label class="block text-sm font-medium text-text-main mb-1.5">Zona horaria</label>
+                <label class="block text-sm font-medium text-slate-50 mb-1.5">Zona horaria</label>
                 <div class="relative">
                   <select 
                     v-model="form.timezone"
-                    class="appearance-none w-full bg-surface border border-border rounded-lg px-4 py-2.5 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all cursor-pointer"
+                    class="appearance-none w-full bg-slate-900/40 backdrop-blur-sm border border-white/10 rounded-lg px-4 py-2.5 text-sm text-slate-50 focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all cursor-pointer [&>option]:bg-slate-900 [&>option]:text-slate-50"
                   >
                     <option value="America/Santiago">(GMT-04:00) Santiago</option>
                     <option value="America/Bogota">(GMT-05:00) Bogotá, Lima, Quito</option>
                     <option value="America/Mexico_City">(GMT-06:00) Ciudad de México</option>
                     <option value="America/Buenos_Aires">(GMT-03:00) Buenos Aires</option>
                   </select>
-                  <svg class="absolute right-3 top-3 pointer-events-none text-text-muted" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  <svg class="absolute right-3 top-3 pointer-events-none text-slate-500" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
                 </div>
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-text-main mb-1.5">Idioma y Formato</label>
+                <label class="block text-sm font-medium text-slate-50 mb-1.5">Idioma y Formato</label>
                 <div class="relative">
                   <select 
                     v-model="form.locale"
-                    class="appearance-none w-full bg-surface-container border border-border rounded-lg px-4 py-2.5 text-sm text-text-secondary focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all cursor-not-allowed"
+                    class="appearance-none w-full bg-slate-900/20 backdrop-blur-sm border border-white/5 rounded-lg px-4 py-2.5 text-sm text-slate-500 focus:outline-none transition-all cursor-not-allowed [&>option]:bg-slate-900"
                     disabled
                   >
                     <option value="es-CL">Español (Chile) - es-CL</option>
                   </select>
-                  <svg class="absolute right-3 top-3 pointer-events-none text-text-muted opacity-50" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  <svg class="absolute right-3 top-3 pointer-events-none text-slate-500 opacity-50" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
                 </div>
-                <p class="text-xs text-text-muted mt-1.5">El formato de moneda y fechas utiliza la configuración local es-CL.</p>
+                <p class="text-xs text-slate-500 mt-1.5">El formato de moneda y fechas utiliza la configuración local es-CL.</p>
               </div>
             </div>
           </div>
           
-          <hr class="border-border" />
+          <hr class="border-white/10" />
           
           <!-- Mensaje Exitoso -->
           <Transition

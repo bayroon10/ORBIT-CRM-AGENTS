@@ -7,7 +7,9 @@
     </header>
 
     <!-- Main Card -->
-    <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+    <div class="bg-slate-900/40 p-8 rounded-2xl shadow-2xl border border-white/10 backdrop-blur-md relative overflow-hidden">
+      <!-- Glow effect inside card -->
+      <div class="absolute -top-16 -right-16 w-32 h-32 rounded-full opacity-20 bg-primary blur-3xl pointer-events-none"></div>
       
       <!-- Error State -->
       <div v-if="errorMsg" class="mb-6 flex items-start gap-2 bg-danger-bg text-danger p-4 rounded-lg text-sm border border-danger/10">
@@ -20,7 +22,7 @@
       <form @submit.prevent="handleLogin" class="flex flex-col gap-5">
         <!-- Email Field -->
         <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-semibold tracking-wide text-text-secondary uppercase" for="email">Correo electrónico</label>
+          <label class="text-xs font-semibold tracking-wide text-slate-400 uppercase" for="email">Correo electrónico</label>
           <input 
             v-model="email"
             id="email" 
@@ -28,7 +30,7 @@
             required
             autocomplete="username email"
             placeholder="nombre@empresa.com"
-            class="w-full h-11 px-4 rounded-lg border border-border bg-surface focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-sm text-text-main"
+            class="w-full h-11 px-4 rounded-lg border border-white/10 bg-slate-950/50 focus:bg-slate-900/80 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-sm text-slate-50"
             :disabled="loading"
           />
         </div>
@@ -36,7 +38,7 @@
         <!-- Password Field -->
         <div class="flex flex-col gap-1.5">
           <div class="flex justify-between items-end">
-            <label class="text-xs font-semibold tracking-wide text-text-secondary uppercase" for="password">Contraseña</label>
+            <label class="text-xs font-semibold tracking-wide text-slate-400 uppercase" for="password">Contraseña</label>
             <a href="#" class="text-xs font-medium text-primary hover:text-primary-variant transition-colors">¿Problemas para entrar?</a>
           </div>
           <div class="relative">
@@ -47,13 +49,13 @@
               required
               autocomplete="current-password"
               placeholder="••••••••"
-              class="w-full h-11 px-4 pr-20 rounded-lg border border-border bg-surface focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-sm text-text-main"
+              class="w-full h-11 px-4 pr-20 rounded-lg border border-white/10 bg-slate-950/50 focus:bg-slate-900/80 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-sm text-slate-50"
               :disabled="loading"
             />
             <button 
               type="button" 
               @click="showPassword = !showPassword"
-              class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-text-secondary hover:text-primary transition-colors"
+              class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-slate-400 hover:text-primary transition-colors"
             >
               <svg v-if="!showPassword" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -84,11 +86,11 @@
       <!-- Footer / Alternatives -->
       <div class="mt-8 flex flex-col gap-4">
         <div class="relative flex items-center">
-          <div class="flex-grow border-t border-border"></div>
-          <span class="mx-4 text-text-secondary text-xs uppercase tracking-widest font-semibold">Solo Acceso Privado</span>
-          <div class="flex-grow border-t border-border"></div>
+          <div class="flex-grow border-t border-white/10"></div>
+          <span class="mx-4 text-slate-400 text-xs uppercase tracking-widest font-semibold">Solo Acceso Privado</span>
+          <div class="flex-grow border-t border-white/10"></div>
         </div>
-        <p class="text-center text-xs text-text-secondary mt-2 leading-relaxed">
+        <p class="text-center text-xs text-slate-400 mt-2 leading-relaxed">
           Si no tienes credenciales de acceso, por favor contacta al administrador de tu instancia de Orbit CRM.
         </p>
       </div>

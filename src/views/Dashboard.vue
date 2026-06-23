@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-full">
     <!-- ── Hero Header ── -->
-    <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 px-8 py-10 mb-8 border border-primary/20 shadow-lg">
+    <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 px-8 py-10 mb-8 border border-white/10 shadow-2xl">
       <div class="absolute inset-0 opacity-10"
         style="background-image: radial-gradient(circle, #818cf8 1px, transparent 1px); background-size: 24px 24px;">
       </div>
@@ -12,8 +12,8 @@
         <div class="flex items-center gap-2 mb-3">
           <BaseBadge variant="primary">Dashboard</BaseBadge>
         </div>
-        <h1 class="text-3xl font-bold text-text-main mb-2 tracking-tight">Panel de Control</h1>
-        <p class="text-text-secondary text-sm">Resumen ejecutivo del pipeline comercial en tiempo real.</p>
+        <h1 class="text-3xl font-bold text-slate-50 mb-2 tracking-tight">Panel de Control</h1>
+        <p class="text-slate-400 text-sm">Resumen ejecutivo del pipeline comercial en tiempo real.</p>
       </div>
     </div>
 
@@ -65,10 +65,10 @@
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <h2 class="text-base font-bold text-text-main tracking-tight">Sales Intelligence Agent</h2>
+              <h2 class="text-base font-bold text-slate-50 tracking-tight">Sales Intelligence Agent</h2>
               <BaseBadge variant="success" :dot="true">Activo</BaseBadge>
             </div>
-            <p class="text-xs text-text-secondary mt-0.5">Análisis automático de leads vía Gemini AI</p>
+            <p class="text-xs text-slate-400 mt-0.5">Análisis automático de leads vía Gemini AI</p>
           </div>
         </div>
       </div>
@@ -76,12 +76,12 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 px-6 pb-6">
         <!-- Columna 1: KPIs Básicos -->
         <div class="flex flex-col gap-4">
-          <div class="bg-surface rounded-xl border border-border p-4 flex items-center justify-between transition-shadow hover:shadow-md hover:border-border-strong">
+          <div class="bg-slate-800/40 backdrop-blur-sm rounded-xl border border-white/10 p-4 flex items-center justify-between transition-shadow hover:shadow-lg hover:border-white/20">
             <div>
-              <p class="text-2xs font-semibold text-text-muted uppercase tracking-wider mb-1">Analizados</p>
+              <p class="text-2xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Analizados</p>
               <div class="flex items-baseline gap-2">
-                <span class="text-2xl font-bold text-text-main">{{ loading ? '—' : agentStats.analyzed }}</span>
-                <span class="text-xs text-text-secondary font-medium">/ {{ loading ? '—' : agentStats.total }} leads</span>
+                <span class="text-2xl font-bold text-slate-50">{{ loading ? '—' : agentStats.analyzed }}</span>
+                <span class="text-xs text-slate-400 font-medium">/ {{ loading ? '—' : agentStats.total }} leads</span>
               </div>
             </div>
             <div class="w-9 h-9 rounded-full bg-success/10 border border-success/20 flex items-center justify-center text-success">
@@ -91,15 +91,15 @@
             </div>
           </div>
 
-          <div class="bg-surface rounded-xl border border-border p-4 flex items-center justify-between transition-shadow hover:shadow-md hover:border-border-strong">
+          <div class="bg-slate-800/40 backdrop-blur-sm rounded-xl border border-white/10 p-4 flex items-center justify-between transition-shadow hover:shadow-lg hover:border-white/20">
             <div>
-              <p class="text-2xs font-semibold text-text-muted uppercase tracking-wider mb-1">Pendientes</p>
+              <p class="text-2xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Pendientes</p>
               <div class="flex items-baseline gap-2">
-                <span class="text-2xl font-bold text-text-main">{{ loading ? '—' : agentStats.pending }}</span>
-                <span class="text-xs text-text-secondary font-medium">en cola</span>
+                <span class="text-2xl font-bold text-slate-50">{{ loading ? '—' : agentStats.pending }}</span>
+                <span class="text-xs text-slate-400 font-medium">en cola</span>
               </div>
             </div>
-            <div class="w-9 h-9 rounded-full bg-surface-card border border-border-strong flex items-center justify-center text-text-muted">
+            <div class="w-9 h-9 rounded-full bg-slate-900/50 backdrop-blur-md border border-white/20 flex items-center justify-center text-slate-500">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -108,16 +108,16 @@
         </div>
 
         <!-- Columna 2: Score y distribución -->
-        <div class="bg-surface rounded-xl border border-border p-5 flex flex-col justify-between transition-shadow hover:shadow-md hover:border-border-strong">
+        <div class="bg-slate-800/40 backdrop-blur-sm rounded-xl border border-white/10 p-5 flex flex-col justify-between transition-shadow hover:shadow-lg hover:border-white/20">
           <div class="flex items-start justify-between mb-4">
             <div>
-              <p class="text-2xs font-semibold text-text-muted uppercase tracking-wider mb-1">Score Promedio IA</p>
+              <p class="text-2xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Score Promedio IA</p>
               <div
                 class="flex items-baseline gap-1.5 text-3xl font-bold"
-                :class="agentStats.avgScore >= 70 ? 'text-success' : (agentStats.avgScore >= 40 ? 'text-warning' : (agentStats.avgScore > 0 ? 'text-danger' : 'text-text-muted'))"
+                :class="agentStats.avgScore >= 70 ? 'text-success' : (agentStats.avgScore >= 40 ? 'text-warning' : (agentStats.avgScore > 0 ? 'text-danger' : 'text-slate-500'))"
               >
                 {{ loading ? '—' : agentStats.avgScore }}
-                <span v-if="!loading && agentStats.analyzed > 0" class="text-sm font-medium text-text-muted">/ 100</span>
+                <span v-if="!loading && agentStats.analyzed > 0" class="text-sm font-medium text-slate-500">/ 100</span>
               </div>
             </div>
           </div>
@@ -126,63 +126,63 @@
             <!-- Hot -->
             <div>
               <div class="flex justify-between text-xs font-medium mb-1.5">
-                <span class="text-text-secondary flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-danger"></span>Hot</span>
-                <span class="text-text-main font-semibold">{{ loading ? '-' : agentStats.hot }}</span>
+                <span class="text-slate-400 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-danger"></span>Hot</span>
+                <span class="text-slate-50 font-semibold">{{ loading ? '-' : agentStats.hot }}</span>
               </div>
-              <div class="w-full bg-surface rounded-full h-1.5 overflow-hidden">
+              <div class="w-full bg-slate-900/50 rounded-full h-1.5 overflow-hidden border border-white/5">
                 <div class="bg-danger h-1.5 rounded-full transition-all duration-1000 ease-out" :style="{ width: loading || agentStats.analyzed === 0 ? '0%' : `${(agentStats.hot / agentStats.analyzed) * 100}%` }"></div>
               </div>
             </div>
             <!-- Warm -->
             <div>
               <div class="flex justify-between text-xs font-medium mb-1.5">
-                <span class="text-text-secondary flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-warning"></span>Warm</span>
-                <span class="text-text-main font-semibold">{{ loading ? '-' : agentStats.warm }}</span>
+                <span class="text-slate-400 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-warning"></span>Warm</span>
+                <span class="text-slate-50 font-semibold">{{ loading ? '-' : agentStats.warm }}</span>
               </div>
-              <div class="w-full bg-surface rounded-full h-1.5 overflow-hidden">
+              <div class="w-full bg-slate-900/50 rounded-full h-1.5 overflow-hidden border border-white/5">
                 <div class="bg-warning h-1.5 rounded-full transition-all duration-1000 ease-out" :style="{ width: loading || agentStats.analyzed === 0 ? '0%' : `${(agentStats.warm / agentStats.analyzed) * 100}%` }"></div>
               </div>
             </div>
             <!-- Cold -->
             <div>
               <div class="flex justify-between text-xs font-medium mb-1.5">
-                <span class="text-text-secondary flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-text-muted"></span>Cold</span>
-                <span class="text-text-main font-semibold">{{ loading ? '-' : agentStats.cold }}</span>
+                <span class="text-slate-400 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-slate-500"></span>Cold</span>
+                <span class="text-slate-50 font-semibold">{{ loading ? '-' : agentStats.cold }}</span>
               </div>
-              <div class="w-full bg-surface rounded-full h-1.5 overflow-hidden">
-                <div class="bg-text-muted h-1.5 rounded-full transition-all duration-1000 ease-out" :style="{ width: loading || agentStats.analyzed === 0 ? '0%' : `${(agentStats.cold / agentStats.analyzed) * 100}%` }"></div>
+              <div class="w-full bg-slate-900/50 rounded-full h-1.5 overflow-hidden border border-white/5">
+                <div class="bg-slate-500 h-1.5 rounded-full transition-all duration-1000 ease-out" :style="{ width: loading || agentStats.analyzed === 0 ? '0%' : `${(agentStats.cold / agentStats.analyzed) * 100}%` }"></div>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Columna 3: Top Leads -->
-        <div class="bg-surface rounded-xl border border-border flex flex-col overflow-hidden transition-shadow hover:shadow-md hover:border-border-strong">
-          <div class="px-5 py-3 border-b border-border bg-surface-container/50">
-            <p class="text-2xs font-semibold text-text-muted uppercase tracking-wider">Top Priorizados</p>
+        <div class="bg-slate-800/40 backdrop-blur-sm rounded-xl border border-white/10 flex flex-col overflow-hidden transition-shadow hover:shadow-lg hover:border-white/20">
+          <div class="px-5 py-3 border-b border-white/10 bg-slate-950/50">
+            <p class="text-2xs font-semibold text-slate-500 uppercase tracking-wider">Top Priorizados</p>
           </div>
 
           <div v-if="loading" class="flex-1 flex flex-col gap-3 p-5">
-            <div class="h-8 bg-surface-card animate-pulse rounded-lg"></div>
-            <div class="h-8 bg-surface-card animate-pulse rounded-lg"></div>
-            <div class="h-8 bg-surface-card animate-pulse rounded-lg"></div>
+            <div class="h-8 bg-slate-900/50 animate-pulse rounded-lg"></div>
+            <div class="h-8 bg-slate-900/50 animate-pulse rounded-lg"></div>
+            <div class="h-8 bg-slate-900/50 animate-pulse rounded-lg"></div>
           </div>
 
-          <div v-else-if="topAiLeads.length > 0" class="flex-1 overflow-y-auto flex flex-col divide-y divide-border">
+          <div v-else-if="topAiLeads.length > 0" class="flex-1 overflow-y-auto flex flex-col divide-y divide-white/10">
             <router-link
               v-for="lead in topAiLeads"
               :key="lead.id"
               :to="{ name: 'LeadDetail', params: { id: lead.id } }"
-              class="px-5 py-3 hover:bg-surface-card transition-colors flex items-center justify-between group cursor-pointer"
+              class="px-5 py-3 hover:bg-slate-900/50 transition-colors flex items-center justify-between group cursor-pointer"
             >
               <div class="min-w-0 flex-1 pr-3">
-                <p class="text-sm font-medium text-text-main truncate group-hover:text-primary-300 transition-colors">{{ lead.full_name }}</p>
+                <p class="text-sm font-medium text-slate-50 truncate group-hover:text-primary-300 transition-colors">{{ lead.full_name }}</p>
               </div>
               <div class="flex items-center gap-3 shrink-0">
                 <BaseBadge :variant="lead.ai_score >= 70 ? 'success' : lead.ai_score >= 40 ? 'warning' : 'danger'">
                   {{ lead.ai_score }}
                 </BaseBadge>
-                <svg class="w-4 h-4 text-text-muted group-hover:text-primary-300 transition-colors transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <svg class="w-4 h-4 text-slate-500 group-hover:text-primary-300 transition-colors transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                 </svg>
               </div>
@@ -190,13 +190,13 @@
           </div>
 
           <div v-else class="flex-1 flex flex-col items-center justify-center p-5 text-center">
-            <div class="w-10 h-10 rounded-full bg-surface-card border border-border flex items-center justify-center mb-2">
-              <svg class="w-5 h-5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <div class="w-10 h-10 rounded-full bg-slate-900/50 backdrop-blur-md border border-white/10 flex items-center justify-center mb-2">
+              <svg class="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
             </div>
-            <p class="text-sm font-medium text-text-secondary">No hay leads analizados</p>
-            <p class="text-xs text-text-muted mt-1">El agente procesará los nuevos leads.</p>
+            <p class="text-sm font-medium text-slate-400">No hay leads analizados</p>
+            <p class="text-xs text-slate-500 mt-1">El agente procesará los nuevos leads.</p>
           </div>
         </div>
       </div>
@@ -210,30 +210,30 @@
 
       <!-- COLUMNA IZQUIERDA: Actividad Reciente -->
       <BaseCard :padded="false" class="lg:col-span-2 overflow-hidden">
-        <div class="flex items-center justify-between px-6 py-4 border-b border-border">
-          <h3 class="font-semibold text-text-main">Actividad Reciente</h3>
+        <div class="flex items-center justify-between px-6 py-4 border-b border-white/10">
+          <h3 class="font-semibold text-slate-50">Actividad Reciente</h3>
           <BaseBadge variant="default">{{ activities.length }}</BaseBadge>
         </div>
 
         <div class="px-6">
           <!-- Loading skeletons -->
           <div v-if="loading" class="flex flex-col gap-3 py-3">
-            <div class="h-14 bg-surface-container animate-pulse rounded-lg"></div>
-            <div class="h-14 bg-surface-container animate-pulse rounded-lg"></div>
-            <div class="h-14 bg-surface-container animate-pulse rounded-lg"></div>
+            <div class="h-14 bg-slate-900/50 animate-pulse rounded-lg border border-white/5"></div>
+            <div class="h-14 bg-slate-900/50 animate-pulse rounded-lg border border-white/5"></div>
+            <div class="h-14 bg-slate-900/50 animate-pulse rounded-lg border border-white/5"></div>
           </div>
 
           <!-- Con datos -->
-          <ul v-else-if="activities.length > 0" class="divide-y divide-border">
+          <ul v-else-if="activities.length > 0" class="divide-y divide-white/10">
             <li v-for="act in activities" :key="act.id" class="py-4 flex items-start gap-3">
-              <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm shrink-0 border" :class="act.type?.includes('resumen') || act.type?.includes('ai') ? 'bg-indigo-500/20 border-indigo-500/30 shadow-[0_0_8px_rgba(99,102,241,0.3)]' : 'bg-surface-container border-border'">
+              <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm shrink-0 border" :class="act.type?.includes('resumen') || act.type?.includes('ai') ? 'bg-indigo-500/20 border-indigo-500/30 shadow-[0_0_8px_rgba(99,102,241,0.3)]' : 'bg-slate-800/50 border-white/10'">
                 {{ act.type?.includes('resumen') || act.type?.includes('ai') ? '✨' : act.type?.includes('llamada') ? '📞' : act.type?.includes('correo') || act.type?.includes('email') ? '✉️' : act.type?.includes('webhook') ? '⚙️' : '💬' }}
               </div>
               <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-text-main" :class="{'truncate': !act.type?.includes('resumen') && !act.type?.includes('ai'), 'line-clamp-2 text-indigo-100': act.type?.includes('resumen') || act.type?.includes('ai')}">{{ act.description }}</p>
-                <p v-if="act.leads?.full_name" class="text-xs text-text-secondary">{{ act.leads.full_name }}</p>
+                <p class="text-sm font-medium text-slate-50" :class="{'truncate': !act.type?.includes('resumen') && !act.type?.includes('ai'), 'line-clamp-2 text-indigo-100': act.type?.includes('resumen') || act.type?.includes('ai')}">{{ act.description }}</p>
+                <p v-if="act.leads?.full_name" class="text-xs text-slate-400">{{ act.leads.full_name }}</p>
               </div>
-              <span class="text-xs text-text-muted whitespace-nowrap ml-auto">{{ formatDate(act.created_at) }}</span>
+              <span class="text-xs text-slate-500 whitespace-nowrap ml-auto">{{ formatDate(act.created_at) }}</span>
             </li>
           </ul>
 
@@ -248,33 +248,33 @@
 
       <!-- COLUMNA DERECHA: Estado del Pipeline -->
       <BaseCard :padded="false" class="lg:col-span-1 overflow-hidden">
-        <div class="px-6 py-4 border-b border-border">
-          <h3 class="font-semibold text-text-main">Pipeline</h3>
+        <div class="px-6 py-4 border-b border-white/10">
+          <h3 class="font-semibold text-slate-50">Pipeline</h3>
         </div>
 
         <div class="px-6 py-5">
           <!-- Barra de progreso -->
-          <p class="text-sm text-text-secondary mb-3">Negocios en curso</p>
-          <div class="bg-surface rounded-full h-2">
+          <p class="text-sm text-slate-400 mb-3">Negocios en curso</p>
+          <div class="bg-slate-900/50 rounded-full h-2 border border-white/5">
             <div
               class="bg-primary rounded-full h-2 transition-all duration-500"
               :style="{ width: stats.negociosActivos > 0 ? '100%' : '0%' }"
             ></div>
           </div>
-          <p class="text-xs text-text-secondary mt-2">
-            <span class="font-semibold text-text-main">{{ loading ? '—' : stats.negociosActivos }}</span>
+          <p class="text-xs text-slate-400 mt-2">
+            <span class="font-semibold text-slate-50">{{ loading ? '—' : stats.negociosActivos }}</span>
             negocios activos en pipeline
           </p>
 
           <!-- Separador -->
-          <div class="border-t border-border my-5"></div>
+          <div class="border-t border-white/10 my-5"></div>
 
           <!-- Total ventas cerradas -->
-          <p class="text-sm text-text-secondary">Total cerrado</p>
+          <p class="text-sm text-slate-400">Total cerrado</p>
           <p class="text-xl font-bold text-success mt-1">
             {{ loading ? '—' : formatCurrency(stats.ventasCerradas) }}
           </p>
-          <p class="text-xs text-text-muted mt-1">Negocios en etapa "ganado"</p>
+          <p class="text-xs text-slate-500 mt-1">Negocios en etapa "ganado"</p>
         </div>
       </BaseCard>
 
@@ -285,7 +285,7 @@
 <script setup>
 import { ref, onMounted, watch, nextTick } from 'vue'
 import { gsap } from 'gsap'
-import { supabase } from '../lib/supabase'
+import { DashboardService } from '../services/dashboard.service'
 import OrbitMetricCard from '../components/OrbitMetricCard.vue'
 import OrbitEmptyState from '../components/OrbitEmptyState.vue'
 import BaseCard from '../components/BaseCard.vue'
@@ -383,89 +383,19 @@ const fetchDashboardData = async () => {
   error.value = null
 
   try {
-    const { data: { session } } = await supabase.auth.getSession()
-    const role = session?.user?.user_metadata?.role
+    const role = await DashboardService.getUserRole()
     isAdmin.value = role === 'admin' || role === 'superadmin'
 
-    // 1. Obtener Nuevos Leads (status = 'nuevo')
-    const { count: nuevosLeadsCount, error: errLeads } = await supabase
-      .from('leads')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'nuevo')
-    if (errLeads) throw errLeads
-
-    // 2. Obtener Negocios Activos (excluyendo ganados/perdidos)
-    const { count: negociosActivosCount, error: errDeals } = await supabase
-      .from('deals')
-      .select('*', { count: 'exact', head: true })
-      .in('stage', ['prospecto', 'cotizado', 'negociando'])
-    if (errDeals) throw errDeals
-
-    // 3. Obtener Cotizaciones Enviadas (stage = 'cotizado')
-    const { count: cotizacionesEnviadasCount, error: errQuotes } = await supabase
-      .from('deals')
-      .select('*', { count: 'exact', head: true })
-      .eq('stage', 'cotizado')
-    if (errQuotes) throw errQuotes
-
-    // 4. Obtener Ventas Cerradas (sum de value para stage = 'ganado')
-    const { data: ventasCerradasData, error: errVentas } = await supabase
-      .from('deals')
-      .select('value')
-      .eq('stage', 'ganado')
-    if (errVentas) throw errVentas
-
-    const totalVentas = ventasCerradasData?.reduce((sum, item) => sum + Number(item.value || 0), 0) || 0
-
-    stats.value = {
-      nuevosLeads: nuevosLeadsCount || 0,
-      negociosActivos: negociosActivosCount || 0,
-      cotizacionesEnviadas: cotizacionesEnviadasCount || 0,
-      ventasCerradas: totalVentas
-    }
-
-    // 5. Obtener datos del Agente IA (Leads con score)
-    const { data: aiLeadsData, error: errAiLeads } = await supabase
-      .from('leads')
-      .select('id, full_name, ai_score, ai_category')
-
-    if (errAiLeads) throw errAiLeads
-
-    if (aiLeadsData) {
-      const analyzedLeads = aiLeadsData.filter(l => l.ai_score !== null)
-      const pendingLeads = aiLeadsData.filter(l => l.ai_score === null)
-
-      const totalScore = analyzedLeads.reduce((sum, l) => sum + l.ai_score, 0)
-      const avgScore = analyzedLeads.length > 0 ? Math.round(totalScore / analyzedLeads.length) : 0
-
-      agentStats.value = {
-        total: aiLeadsData.length,
-        analyzed: analyzedLeads.length,
-        pending: pendingLeads.length,
-        avgScore: avgScore,
-        hot: analyzedLeads.filter(l => l.ai_category === 'Hot').length,
-        warm: analyzedLeads.filter(l => l.ai_category === 'Warm').length,
-        cold: analyzedLeads.filter(l => l.ai_category === 'Cold').length
-      }
-
-      topAiLeads.value = analyzedLeads
-        .sort((a, b) => b.ai_score - a.ai_score)
-        .slice(0, 3)
-    }
-
-    // 6. Obtener Actividades Recientes
-    const { data: activitiesData, error: errActivities } = await supabase
-      .from('activities')
-      .select('id, type, description, created_at, leads(full_name)')
-      .order('created_at', { ascending: false })
-      .limit(5)
-    if (errActivities) throw errActivities
-
-    activities.value = activitiesData || []
+    const data = await DashboardService.getDashboardMetrics()
+    
+    stats.value = data.stats
+    agentStats.value = data.agentStats
+    topAiLeads.value = data.topAiLeads
+    activities.value = data.activities
 
   } catch (err) {
     console.error('Error al cargar datos del Dashboard:', err)
-    error.value = 'Error al cargar los datos en tiempo real de Supabase.'
+    error.value = 'Error al cargar los datos en tiempo real.'
   } finally {
     loading.value = false
   }

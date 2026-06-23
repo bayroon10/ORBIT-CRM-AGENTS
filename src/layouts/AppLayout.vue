@@ -1,8 +1,8 @@
 <template>
   <div class="flex h-screen bg-surface text-text-main font-sans">
-    <OrbitSidebar />
-    <div class="flex-1 flex flex-col overflow-hidden">
-      <OrbitHeader />
+    <OrbitSidebar class="print:!hidden" />
+    <div class="flex-1 flex flex-col overflow-hidden print:!overflow-visible">
+      <OrbitHeader class="print:!hidden" />
       <main ref="mainContent" class="flex-1 overflow-x-hidden overflow-y-auto bg-surface p-6">
         <div class="mx-auto max-w-7xl relative">
           <router-view v-slot="{ Component, route }">
@@ -20,7 +20,7 @@
     </div>
     
     <!-- Contenedor global de notificaciones realtime -->
-    <OrbitToastContainer />
+    <OrbitToastContainer class="print:!hidden" />
   </div>
 </template>
 

@@ -39,12 +39,12 @@ const sizeClass = computed(() => {
 
 const variantClass = computed(() => {
   const map = {
-    default: 'bg-surface-overlay text-text-secondary border border-border-strong',
-    primary: 'bg-primary/20 text-primary-300 border border-primary/30',
-    success: 'bg-success/15 text-success border border-success/20',
-    danger:  'bg-danger/15  text-danger  border border-danger/20',
-    warning: 'bg-warning/15 text-warning border border-warning/20',
-    muted:   'bg-surface-container text-text-muted border border-border',
+    default: 'bg-slate-800/50 backdrop-blur-sm text-slate-400 border border-white/10',
+    primary: 'bg-primary/20 backdrop-blur-sm text-primary-300 border border-primary/30',
+    success: 'bg-success/15 backdrop-blur-sm text-success border border-success/20',
+    danger:  'bg-danger/15 backdrop-blur-sm text-danger border border-danger/20',
+    warning: 'bg-warning/15 backdrop-blur-sm text-warning border border-warning/20',
+    muted:   'bg-slate-900/50 backdrop-blur-sm text-slate-500 border border-white/5',
   }
   return map[props.variant] || map.default
 })

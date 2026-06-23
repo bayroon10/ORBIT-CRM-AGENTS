@@ -3,7 +3,7 @@
     <TransitionGroup 
       @enter="onEnter" 
       @leave="onLeave" 
-      css="false"
+      :css="false"
     >
       <OrbitToast 
         v-for="alert in alerts" 

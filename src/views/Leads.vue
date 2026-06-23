@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col h-full">
     <!-- ── Hero Header ── -->
-    <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 px-8 py-10 mb-8 border border-primary/20 shadow-lg shrink-0">
+    <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 px-8 py-10 mb-8 border border-white/10 shadow-2xl shrink-0">
       <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle, #818cf8 1px, transparent 1px); background-size: 24px 24px;"></div>
       <div class="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-15" style="background: radial-gradient(circle, #6366f1, transparent 70%);"></div>
       <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -9,8 +9,8 @@
           <div class="flex items-center gap-2 mb-3">
             <BaseBadge variant="primary">Prospectos</BaseBadge>
           </div>
-          <h1 class="text-3xl font-bold text-text-main mb-2 tracking-tight">Leads</h1>
-          <p class="text-text-secondary text-sm">Gestión de prospectos comerciales.</p>
+          <h1 class="text-3xl font-bold text-slate-50 mb-2 tracking-tight">Leads</h1>
+          <p class="text-slate-400 text-sm">Gestión de prospectos comerciales.</p>
         </div>
         <BaseButton @click="showModal = true" size="lg">Nuevo Lead</BaseButton>
       </div>
@@ -24,15 +24,15 @@
     <!-- ── Table Card ── -->
     <BaseCard :padded="false" class="flex flex-col flex-1 overflow-hidden">
       <!-- Filtros / Buscador -->
-      <div class="p-4 border-b border-border flex justify-between items-center shrink-0">
+      <div class="p-4 border-b border-white/10 flex justify-between items-center shrink-0">
         <div class="relative w-72">
           <input
             v-model="searchQuery"
             type="text"
             placeholder="Buscar por nombre, email o empresa..."
-            class="w-full pl-10 pr-4 py-2 bg-surface border border-border rounded-lg text-sm text-text-main placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+            class="w-full pl-10 pr-4 py-2 bg-slate-900/40 backdrop-blur-sm border border-white/10 rounded-lg text-sm text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
           />
-          <div class="absolute left-3 top-2.5 text-text-muted">
+          <div class="absolute left-3 top-2.5 text-slate-400">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           </div>
         </div>
@@ -47,31 +47,31 @@
       <!-- Table -->
       <div v-else-if="filteredLeads.length > 0" class="overflow-x-auto overflow-y-auto flex-1">
         <table class="w-full text-left text-sm">
-          <thead class="bg-surface-container text-text-muted font-semibold sticky top-0 z-10">
+          <thead class="bg-slate-950/50 backdrop-blur-md text-slate-400 font-semibold sticky top-0 z-10">
             <tr>
-              <th class="px-6 py-4 border-b border-border">Nombre</th>
-              <th class="px-6 py-4 border-b border-border">Contacto</th>
-              <th class="px-6 py-4 border-b border-border hidden sm:table-cell">Empresa</th>
-              <th class="px-6 py-4 border-b border-border">Score IA</th>
-              <th class="px-6 py-4 border-b border-border">Estado</th>
-              <th class="px-6 py-4 border-b border-border hidden md:table-cell">Fecha</th>
+              <th class="px-6 py-4 border-b border-white/10">Nombre</th>
+              <th class="px-6 py-4 border-b border-white/10">Contacto</th>
+              <th class="px-6 py-4 border-b border-white/10 hidden sm:table-cell">Empresa</th>
+              <th class="px-6 py-4 border-b border-white/10">Score IA</th>
+              <th class="px-6 py-4 border-b border-white/10">Estado</th>
+              <th class="px-6 py-4 border-b border-white/10 hidden md:table-cell">Fecha</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-border">
+          <tbody class="divide-y divide-white/10">
             <tr
               v-for="lead in filteredLeads"
               :key="lead.id"
               @click="router.push(`/leads/${lead.id}`)"
-              class="hover:bg-surface-container/60 transition-colors cursor-pointer group"
+              class="hover:bg-slate-900/50 transition-colors cursor-pointer group"
             >
               <td class="px-6 py-4">
-                <div class="font-medium text-text-main">{{ lead.full_name }}</div>
+                <div class="font-medium text-slate-50">{{ lead.full_name }}</div>
               </td>
               <td class="px-6 py-4">
-                <div class="text-text-main">{{ lead.email || '—' }}</div>
-                <div class="text-xs text-text-secondary mt-0.5">{{ lead.phone || '—' }}</div>
+                <div class="text-slate-50">{{ lead.email || '—' }}</div>
+                <div class="text-xs text-slate-400 mt-0.5">{{ lead.phone || '—' }}</div>
               </td>
-              <td class="px-6 py-4 text-text-secondary hidden sm:table-cell">
+              <td class="px-6 py-4 text-slate-400 hidden sm:table-cell">
                 {{ lead.companies?.name || '—' }}
               </td>
               <td class="px-6 py-4">
@@ -83,7 +83,7 @@
                     {{ lead.ai_score }}
                   </BaseBadge>
                 </div>
-                <div v-else class="text-xs text-text-muted font-medium italic whitespace-nowrap">
+                <div v-else class="text-xs text-slate-500 font-medium italic whitespace-nowrap">
                   Pendiente
                 </div>
               </td>
@@ -92,7 +92,7 @@
                   {{ formatStatus(lead.status) }}
                 </BaseBadge>
               </td>
-              <td class="px-6 py-4 text-text-secondary whitespace-nowrap hidden md:table-cell">
+              <td class="px-6 py-4 text-slate-400 whitespace-nowrap hidden md:table-cell">
                 {{ formatDate(lead.created_at) }}
               </td>
             </tr>
@@ -119,41 +119,41 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-text-main mb-1">Nombre completo *</label>
+          <label class="block text-sm font-medium text-slate-50 mb-1">Nombre completo *</label>
           <input
             v-model="form.full_name"
             type="text"
             required
             placeholder="Nombre completo"
-            class="w-full border border-border-strong rounded-lg px-3 py-2 text-sm bg-surface text-text-main placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+            class="w-full border border-white/20 rounded-lg px-3 py-2 text-sm bg-slate-900/50 text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
           />
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-text-main mb-1">Email</label>
+          <label class="block text-sm font-medium text-slate-50 mb-1">Email</label>
           <input
             v-model="form.email"
             type="email"
             placeholder="correo@empresa.com"
-            class="w-full border border-border-strong rounded-lg px-3 py-2 text-sm bg-surface text-text-main placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+            class="w-full border border-white/20 rounded-lg px-3 py-2 text-sm bg-slate-900/50 text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
           />
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-text-main mb-1">Teléfono</label>
+          <label class="block text-sm font-medium text-slate-50 mb-1">Teléfono</label>
           <input
             v-model="form.phone"
             type="text"
             placeholder="+56 9 xxxx xxxx"
-            class="w-full border border-border-strong rounded-lg px-3 py-2 text-sm bg-surface text-text-main placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+            class="w-full border border-white/20 rounded-lg px-3 py-2 text-sm bg-slate-900/50 text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
           />
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-text-main mb-1">Estado</label>
+          <label class="block text-sm font-medium text-slate-50 mb-1">Estado</label>
           <select
             v-model="form.status"
-            class="w-full border border-border-strong rounded-lg px-3 py-2 text-sm bg-surface text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+            class="w-full border border-white/20 rounded-lg px-3 py-2 text-sm bg-slate-900/50 text-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
           >
             <option value="nuevo">Nuevo</option>
             <option value="contactado">Contactado</option>
@@ -162,32 +162,32 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-text-main mb-1">Empresa</label>
+          <label class="block text-sm font-medium text-slate-50 mb-1">Empresa</label>
           <input
             v-model="form.company"
             type="text"
             placeholder="Empresa (Opcional)"
-            class="w-full border border-border-strong rounded-lg px-3 py-2 text-sm bg-surface text-text-main placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+            class="w-full border border-white/20 rounded-lg px-3 py-2 text-sm bg-slate-900/50 text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
           />
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-text-main mb-1">Fuente</label>
+          <label class="block text-sm font-medium text-slate-50 mb-1">Fuente</label>
           <input
             v-model="form.source"
             type="text"
             placeholder="Ej. LinkedIn, Web, Referido"
-            class="w-full border border-border-strong rounded-lg px-3 py-2 text-sm bg-surface text-text-main placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+            class="w-full border border-white/20 rounded-lg px-3 py-2 text-sm bg-slate-900/50 text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
           />
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-text-main mb-1">Notas</label>
+          <label class="block text-sm font-medium text-slate-50 mb-1">Notas</label>
           <textarea
             v-model="form.notes"
             rows="3"
             placeholder="Información adicional del lead..."
-            class="w-full border border-border-strong rounded-lg px-3 py-2 text-sm bg-surface text-text-main placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+            class="w-full border border-white/20 rounded-lg px-3 py-2 text-sm bg-slate-900/50 text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
           ></textarea>
         </div>
       </form>
@@ -207,7 +207,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { supabase } from '../lib/supabase'
+import { LeadsService } from '../services/leads.service'
 import OrbitEmptyState from '../components/OrbitEmptyState.vue'
 import OrbitModal from '../components/OrbitModal.vue'
 import BaseCard from '../components/BaseCard.vue'
@@ -260,24 +260,15 @@ const submitLead = async () => {
   formError.value = null
 
   try {
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      formError.value = 'Sesión no válida.'
-      return
-    }
-
-    const { error: insertError } = await supabase
-      .from('leads')
-      .insert({
-        full_name: form.full_name.trim(),
-        email: form.email.trim(),
-        phone: form.phone.trim(),
-        status: form.status,
-        company: form.company.trim(),
-        source: form.source.trim(),
-        notes: form.notes.trim(),
-        owner_id: user.id
-      })
+    const { error: insertError } = await LeadsService.createLead({
+      full_name: form.full_name.trim(),
+      email: form.email.trim(),
+      phone: form.phone.trim(),
+      status: form.status,
+      company: form.company.trim(),
+      source: form.source.trim(),
+      notes: form.notes.trim()
+    })
 
     if (insertError) throw insertError
 
@@ -329,10 +320,7 @@ const fetchLeads = async () => {
   loading.value = true
   error.value = null
   try {
-    const { data, error: err } = await supabase
-      .from('leads')
-      .select('id, full_name, email, phone, status, created_at, ai_score, ai_category, companies(name)')
-      .order('created_at', { ascending: false })
+    const { data, error: err } = await LeadsService.getLeads()
 
     if (err) throw err
     leads.value = data || []

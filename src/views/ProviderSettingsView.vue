@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col h-full relative overflow-x-hidden">
     <!-- Hero Header -->
-    <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 px-8 py-10 mb-8 border border-primary/20 shadow-lg shrink-0">
+    <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 px-8 py-10 mb-8 border border-white/10 shadow-2xl shrink-0">
       <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle, #818cf8 1px, transparent 1px); background-size: 24px 24px;"></div>
       <div class="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-15" style="background: radial-gradient(circle, #6366f1, transparent 70%);"></div>
       <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -9,8 +9,8 @@
           <div class="flex items-center gap-2 mb-3">
             <BaseBadge variant="primary">Sistema</BaseBadge>
           </div>
-          <h1 class="text-3xl font-bold text-text-main mb-2 tracking-tight">Configuración</h1>
-          <p class="text-text-secondary text-sm">Ajustes generales, preferencias e información del espacio de trabajo.</p>
+          <h1 class="text-3xl font-bold text-slate-50 mb-2 tracking-tight">Configuración</h1>
+          <p class="text-slate-400 text-sm">Ajustes generales, preferencias e información del espacio de trabajo.</p>
         </div>
       </div>
     </div>
@@ -27,7 +27,7 @@
       <aside class="w-full md:w-64 shrink-0 flex flex-col gap-2">
         <button 
           @click="router.push({ name: 'Settings' })"
-          class="flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium text-text-secondary hover:bg-surface-card hover:text-text-main border border-transparent transition-all"
+          class="flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-800/50 hover:text-slate-50 border border-transparent transition-all"
         >
           <div class="flex items-center gap-3">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
@@ -37,7 +37,7 @@
 
         <button 
           @click="router.push({ name: 'SettingsUsers' })"
-          class="flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium text-text-secondary hover:bg-surface-card hover:text-text-main border border-transparent transition-all"
+          class="flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-800/50 hover:text-slate-50 border border-transparent transition-all"
         >
           <div class="flex items-center gap-3">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
@@ -46,7 +46,7 @@
         </button>
 
         <button 
-          class="flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all bg-primary/10 text-primary-300 border border-primary/20"
+          class="flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all bg-primary-500/20 text-primary-300 border border-primary-500/30"
         >
           <div class="flex items-center gap-3">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
@@ -54,30 +54,30 @@
           </div>
         </button>
 
-        <div class="flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium text-text-secondary opacity-60 cursor-not-allowed border border-transparent">
+        <div class="flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium text-slate-400 opacity-60 cursor-not-allowed border border-transparent">
           <div class="flex items-center gap-3">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
             Notificaciones
           </div>
-          <span class="text-[10px] bg-surface-container px-2 py-0.5 rounded-full font-bold uppercase text-text-muted">Pronto</span>
+          <span class="text-[10px] bg-slate-900/50 border border-white/10 px-2 py-0.5 rounded-full font-bold uppercase text-slate-500">Pronto</span>
         </div>
 
-        <div class="flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium text-text-secondary opacity-60 cursor-not-allowed border border-transparent">
+        <div class="flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium text-slate-400 opacity-60 cursor-not-allowed border border-transparent">
           <div class="flex items-center gap-3">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
             Seguridad
           </div>
-          <span class="text-[10px] bg-surface-container px-2 py-0.5 rounded-full font-bold uppercase text-text-muted">Pronto</span>
+          <span class="text-[10px] bg-slate-900/50 border border-white/10 px-2 py-0.5 rounded-full font-bold uppercase text-slate-500">Pronto</span>
         </div>
 
         <!-- Plan Info Card -->
-        <div class="mt-6 p-5 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 relative overflow-hidden">
+        <div class="mt-6 p-5 rounded-2xl bg-slate-800/50 border border-white/10 relative overflow-hidden">
           <div class="absolute -right-4 -top-4 w-16 h-16 bg-primary/20 rounded-full blur-xl pointer-events-none"></div>
           <div class="flex items-center gap-2 mb-2 relative z-10">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary-300"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
             <span class="text-xs font-bold text-primary-300 uppercase tracking-wide">Plan Profesional</span>
           </div>
-          <p class="text-xs text-text-secondary leading-relaxed mb-4 relative z-10">
+          <p class="text-xs text-slate-400 leading-relaxed mb-4 relative z-10">
             Tienes acceso a todas las funcionalidades avanzadas. El próximo ciclo de facturación es el 15 de Noviembre.
           </p>
           <button class="w-full py-1.5 text-xs font-medium text-primary-300 hover:bg-primary/10 rounded-lg transition-colors border border-primary/20 relative z-10">
@@ -88,10 +88,10 @@
 
       <!-- Panel de Contenido -->
       <BaseCard :padded="false" class="flex-1 flex flex-col h-fit overflow-hidden max-w-4xl">
-        <div class="p-6 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between bg-surface-container gap-4">
+        <div class="p-6 border-b border-white/10 flex flex-col sm:flex-row sm:items-center justify-between bg-slate-900/50 gap-4">
           <div>
-            <h2 class="text-xl font-bold text-text-main">Integraciones (Providers)</h2>
-            <p class="text-sm text-text-secondary mt-1">Gestiona las API keys para servicios externos (OpenAI, Gemini, n8n, etc).</p>
+            <h2 class="text-xl font-bold text-slate-50">Integraciones (Providers)</h2>
+            <p class="text-sm text-slate-400 mt-1">Gestiona las API keys para servicios externos (OpenAI, Gemini, n8n, etc).</p>
           </div>
           <BaseButton class="shrink-0" @click="showAddModal = true">
             <template #icon>
@@ -101,26 +101,26 @@
           </BaseButton>
         </div>
 
-        <div class="px-6 py-2 border-b border-border flex gap-6 bg-surface-container">
+        <div class="px-6 py-2 border-b border-white/10 flex gap-6 bg-slate-900/50">
           <button class="py-3 border-b-2 border-primary text-primary-300 font-semibold text-sm">Credenciales Activas</button>
-          <button class="py-3 border-b-2 border-transparent text-text-secondary hover:text-text-main font-medium text-sm transition-colors">Logs de Uso</button>
+          <button class="py-3 border-b-2 border-transparent text-slate-400 hover:text-slate-50 font-medium text-sm transition-colors">Logs de Uso</button>
         </div>
 
         <div class="flex-1 flex flex-col">
           <!-- Loading State -->
           <div v-if="loading" class="p-8 flex flex-col items-center justify-center space-y-4 flex-1">
             <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            <p class="text-sm text-text-secondary">Cargando integraciones...</p>
+            <p class="text-sm text-slate-400">Cargando integraciones...</p>
           </div>
 
           <!-- Empty State -->
           <div v-else-if="providers.length === 0" class="py-16 flex-1 flex items-center justify-center">
             <div class="text-center">
-              <div class="bg-surface-card w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-border">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+              <div class="bg-slate-800/50 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/10">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
               </div>
-              <h3 class="text-lg font-bold text-text-main mb-2">No hay integraciones</h3>
-              <p class="text-text-secondary text-sm max-w-sm mx-auto mb-6">No has agregado ninguna API Key. Agrega una credencial para automatizar flujos con IA y webhooks.</p>
+              <h3 class="text-lg font-bold text-slate-50 mb-2">No hay integraciones</h3>
+              <p class="text-slate-400 text-sm max-w-sm mx-auto mb-6">No has agregado ninguna API Key. Agrega una credencial para automatizar flujos con IA y webhooks.</p>
               <BaseButton @click="showAddModal = true">Agregar Credencial</BaseButton>
             </div>
           </div>
@@ -128,10 +128,10 @@
           <!-- Data Table -->
           <div v-else class="overflow-y-auto flex-1 p-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div v-for="item in providers" :key="item.id" class="p-4 rounded-xl border border-border bg-surface hover:border-primary/30 transition-colors group">
+              <div v-for="item in providers" :key="item.id" class="p-4 rounded-xl border border-white/10 bg-slate-900/40 backdrop-blur-sm hover:border-primary/30 transition-colors group">
                 <div class="flex justify-between items-start mb-4">
                   <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-surface-container border border-border flex items-center justify-center shrink-0">
+                    <div class="w-10 h-10 rounded-lg bg-slate-800/50 border border-white/10 flex items-center justify-center shrink-0">
                       <svg v-if="item.provider === 'OpenAI'" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-400"><path d="M12 2v20"></path><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                       <svg v-else-if="item.provider === 'Gemini'" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-400"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
                       <svg v-else-if="item.provider === 'Claude'" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-orange-400"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
@@ -139,28 +139,28 @@
                       <svg v-else xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary-300"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
                     </div>
                     <div>
-                      <h4 class="font-bold text-text-main text-sm">{{ item.provider }}</h4>
-                      <p class="text-xs text-text-secondary">{{ item.label || 'Sin etiqueta' }}</p>
+                      <h4 class="font-bold text-slate-50 text-sm">{{ item.provider }}</h4>
+                      <p class="text-xs text-slate-400">{{ item.label || 'Sin etiqueta' }}</p>
                     </div>
                   </div>
                   <div class="flex items-center gap-2">
                     <BaseBadge :variant="item.is_active ? 'success' : 'default'">{{ item.is_active ? 'Activo' : 'Inactivo' }}</BaseBadge>
-                    <button @click="deleteProvider(item.id)" class="p-1.5 text-text-muted hover:text-danger rounded hover:bg-danger/10 transition-colors opacity-0 group-hover:opacity-100" title="Eliminar">
+                    <button @click="deleteProvider(item.id)" class="p-1.5 text-slate-400 hover:text-danger rounded hover:bg-danger/10 transition-colors opacity-0 group-hover:opacity-100" title="Eliminar">
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                     </button>
                   </div>
                 </div>
 
-                <div class="bg-surface-container rounded-lg p-3 border border-border/50">
+                <div class="bg-slate-900/50 rounded-lg p-3 border border-white/5">
                   <div class="flex items-center justify-between">
-                    <div class="text-xs text-text-muted font-medium uppercase tracking-wider mb-1">Clave (Oculta por seguridad)</div>
+                    <div class="text-xs text-slate-500 font-medium uppercase tracking-wider mb-1">Clave (Oculta por seguridad)</div>
                   </div>
-                  <div class="font-mono text-sm text-text-main mt-1 tracking-widest break-all">
+                  <div class="font-mono text-sm text-slate-400 mt-1 tracking-widest break-all">
                     {{ item.masked_credential || '••••••••••••' }}
                   </div>
                 </div>
                 
-                <div class="mt-4 flex items-center justify-between text-xs text-text-muted">
+                <div class="mt-4 flex items-center justify-between text-xs text-slate-500">
                   <span>Creado: {{ formatDate(item.created_at) }}</span>
                 </div>
               </div>
@@ -174,11 +174,11 @@
     <OrbitModal v-model="showAddModal" title="Agregar Credencial">
       <div class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-text-main mb-1.5">Proveedor *</label>
+          <label class="block text-sm font-medium text-slate-50 mb-1.5">Proveedor *</label>
           <div class="relative">
             <select 
               v-model="newForm.providerSelect"
-              class="appearance-none w-full bg-surface border border-border rounded-lg px-4 py-2.5 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all cursor-pointer"
+              class="appearance-none w-full bg-slate-900/40 backdrop-blur-sm border border-white/10 rounded-lg px-4 py-2.5 text-sm text-slate-50 focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all cursor-pointer [&>option]:bg-slate-900 [&>option]:text-slate-50"
             >
               <option value="" disabled>Selecciona un proveedor</option>
               <option value="Gemini">Gemini (Google AI)</option>
@@ -188,39 +188,39 @@
               <option value="n8n Webhook">n8n Webhook</option>
               <option value="Otro">Otro / Personalizado</option>
             </select>
-            <svg class="absolute right-3 top-3 pointer-events-none text-text-muted" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            <svg class="absolute right-3 top-3 pointer-events-none text-slate-500" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </div>
         </div>
 
         <div v-if="newForm.providerSelect === 'Otro'">
-          <label class="block text-sm font-medium text-text-main mb-1.5">Nombre del proveedor *</label>
+          <label class="block text-sm font-medium text-slate-50 mb-1.5">Nombre del proveedor *</label>
           <input 
             v-model="newForm.customProvider"
             type="text" 
-            class="w-full bg-surface border border-border rounded-lg px-4 py-2.5 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+            class="w-full bg-slate-900/40 backdrop-blur-sm border border-white/10 rounded-lg px-4 py-2.5 text-sm text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all"
             placeholder="Ej: Resend, Stripe..."
           />
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-text-main mb-1.5">Etiqueta (Opcional)</label>
+          <label class="block text-sm font-medium text-slate-50 mb-1.5">Etiqueta (Opcional)</label>
           <input 
             v-model="newForm.label"
             type="text" 
-            class="w-full bg-surface border border-border rounded-lg px-4 py-2.5 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+            class="w-full bg-slate-900/40 backdrop-blur-sm border border-white/10 rounded-lg px-4 py-2.5 text-sm text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all"
             placeholder="Ej: Key de Producción"
           />
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-text-main mb-1.5">Clave / Token *</label>
+          <label class="block text-sm font-medium text-slate-50 mb-1.5">Clave / Token *</label>
           <input 
             v-model="newForm.credentialValue"
             type="password" 
-            class="w-full bg-surface border border-border rounded-lg px-4 py-2.5 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+            class="w-full bg-slate-900/40 backdrop-blur-sm border border-white/10 rounded-lg px-4 py-2.5 text-sm text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all"
             placeholder="Pega la API Key aquí..."
           />
-          <p class="text-xs text-text-muted mt-2">La clave se cifrará al guardar. Por seguridad, el sistema nunca la devolverá completa al navegador.</p>
+          <p class="text-xs text-slate-500 mt-2">La clave se cifrará al guardar. Por seguridad, el sistema nunca la devolverá completa al navegador.</p>
         </div>
       </div>
       <template #footer>
