@@ -35,7 +35,7 @@ export function useRealtimeAlerts() {
           if (lead.ai_score >= 70) {
             addAlert({
               id: lead.id,
-              name: lead.name,
+              name: lead.full_name,
               score: lead.ai_score,
               message: 'Nuevo prospecto de alta prioridad evaluado por IA'
             })
