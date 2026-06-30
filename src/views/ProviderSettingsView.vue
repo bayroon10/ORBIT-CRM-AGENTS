@@ -153,16 +153,104 @@
 
                 <div class="bg-slate-900/50 rounded-lg p-3 border border-white/5">
                   <div class="flex items-center justify-between">
-                    <div class="text-xs text-slate-500 font-medium uppercase tracking-wider mb-1">Clave (Oculta por seguridad)</div>
+                    <div class="text-xs text-slate-500 font-medium uppercase tracking-wider mb-1">Clave</div>
                   </div>
-                  <div class="font-mono text-sm text-slate-400 mt-1 tracking-widest break-all">
-                    {{ item.masked_credential || '••••••••••••' }}
+                  <div class="font-mono text-sm text-slate-400 mt-1 break-all">
+                    Gestionada en n8n (no almacenada)
                   </div>
                 </div>
                 
                 <div class="mt-4 flex items-center justify-between text-xs text-slate-500">
                   <span>Creado: {{ formatDate(item.created_at) }}</span>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- === SECCIÓN WHATSAPP === -->
+          <div class="px-6 pb-6">
+            <div class="mt-6 pt-6 border-t border-white/10">
+              <div class="flex items-center gap-3 mb-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-500"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                <h3 class="text-sm font-semibold text-slate-50">WhatsApp Business</h3>
+              </div>
+              <p class="text-xs text-slate-400 mb-4 ml-7">
+                Conecta tu número para que el agente IA responda mensajes automáticamente.
+              </p>
+
+              <!-- Estado de conexión -->
+              <div class="flex items-center gap-2 mb-4 ml-7">
+                <div
+                  class="w-2 h-2 rounded-full"
+                  :class="whatsappConnected ? 'bg-green-500' : 'bg-slate-600'"
+                ></div>
+                <span class="text-xs text-slate-400">
+                  {{ whatsappConnected ? 'Conectado y activo' : 'No configurado' }}
+                </span>
+              </div>
+
+              <!-- Formulario de credenciales -->
+              <div class="space-y-3 max-w-md">
+                <div>
+                  <label class="text-xs text-slate-400 block mb-1">Access Token de Meta</label>
+                  <input
+                    id="wa-access-token-input"
+                    v-model="waAccessToken"
+                    type="password"
+                    placeholder="EAAxxxxxxx..."
+                    class="w-full px-3 py-2 text-sm bg-slate-900/40 border border-white/10 rounded-lg text-slate-50 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500/50 transition-colors"
+                  />
+                </div>
+                <div>
+                  <label class="text-xs text-slate-400 block mb-1">Phone Number ID</label>
+                  <input
+                    id="wa-phone-number-id-input"
+                    v-model="waPhoneNumberId"
+                    type="text"
+                    placeholder="1234567890"
+                    class="w-full px-3 py-2 text-sm bg-slate-900/40 border border-white/10 rounded-lg text-slate-50 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500/50 transition-colors"
+                  />
+                </div>
+                <div>
+                  <label class="text-xs text-slate-400 block mb-1">Verify Token (para webhook)</label>
+                  <input
+                    id="wa-verify-token-input"
+                    v-model="waVerifyToken"
+                    type="text"
+                    placeholder="orbit_whatsapp_verify"
+                    class="w-full px-3 py-2 text-sm bg-slate-900/40 border border-white/10 rounded-lg text-slate-50 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500/50 transition-colors"
+                  />
+                </div>
+
+                <!-- Webhook URL para Meta -->
+                <div class="p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-lg">
+                  <p class="text-xs text-slate-400 mb-1">URL del Webhook (configurar en Meta Developer)</p>
+                  <code class="text-xs text-indigo-400 break-all select-all">
+                    https://alfalfa-excusably-zestfully.ngrok-free.dev/webhook/whatsapp-agent
+                  </code>
+                </div>
+
+                <div class="flex gap-2 pt-1">
+                  <button
+                    id="wa-save-config-btn"
+                    @click="saveWhatsAppConfig"
+                    :disabled="savingWa"
+                    class="px-4 py-2 text-sm font-medium bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {{ savingWa ? 'Guardando...' : 'Guardar configuración' }}
+                  </button>
+                  <button
+                    id="wa-inbox-link-btn"
+                    @click="router.push({ name: 'WhatsAppInbox' })"
+                    class="px-4 py-2 text-sm font-medium text-slate-300 bg-slate-800/50 border border-white/10 rounded-lg hover:bg-slate-700/50 transition-colors"
+                  >
+                    Ver Inbox →
+                  </button>
+                </div>
+
+                <!-- Feedback -->
+                <p v-if="waSaveSuccess" class="text-xs text-green-400">✓ Configuración guardada correctamente</p>
+                <p v-if="waSaveError" class="text-xs text-red-400">{{ waSaveError }}</p>
               </div>
             </div>
           </div>
@@ -220,7 +308,7 @@
             class="w-full bg-slate-900/40 backdrop-blur-sm border border-white/10 rounded-lg px-4 py-2.5 text-sm text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all"
             placeholder="Pega la API Key aquí..."
           />
-          <p class="text-xs text-slate-500 mt-2">La clave se cifrará al guardar. Por seguridad, el sistema nunca la devolverá completa al navegador.</p>
+          <p class="text-xs text-slate-500 mt-2">La clave NO se almacena en la aplicación. Debe configurarse como credencial en n8n; aquí solo se registra el proveedor (metadata).</p>
         </div>
       </div>
       <template #footer>
@@ -238,6 +326,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
+import { whatsappService } from '../services/whatsapp.service'
 import { useRouter } from 'vue-router'
 import { supabase } from '../lib/supabase'
 import BaseCard from '../components/BaseCard.vue'
@@ -271,28 +360,16 @@ const fetchProviders = async () => {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) throw new Error('No session active')
 
-    // Importante: explicitamos las columnas seguras
+    // RFC-0001 (Opción B): provider_settings solo guarda metadata. No hay secreto que leer
+    // ni enmascarar; el valor se gestiona en n8n Credentials.
     const { data, error: err } = await supabase
       .from('provider_settings')
       .select('id, provider, label, credential_type, is_active, created_at, last_used_at, user_id')
       .order('created_at', { ascending: false })
-      
-    if (err) throw err
-    
-    const providersList = data || []
-    
-    for (const item of providersList) {
-      try {
-        const { data: maskedData, error: rpcErr } = await supabase.rpc('get_masked_credential', { setting_id: item.id })
-        if (rpcErr) throw rpcErr
-        item.masked_credential = maskedData
-      } catch (rpcError) {
-        console.error('Error fetching masked credential for id', item.id, rpcError)
-        item.masked_credential = '— No disponible —'
-      }
-    }
 
-    providers.value = providersList
+    if (err) throw err
+
+    providers.value = data || []
   } catch (err) {
     console.error('Error fetching providers:', err)
     error.value = err.message || 'Ocurrió un error al cargar las integraciones.'
@@ -301,8 +378,62 @@ const fetchProviders = async () => {
   }
 }
 
+// === WhatsApp refs ===
+const whatsappConnected = ref(false)
+const waAccessToken = ref('')
+const waPhoneNumberId = ref('')
+const waVerifyToken = ref('orbit_whatsapp_verify')
+const savingWa = ref(false)
+const waSaveSuccess = ref(false)
+const waSaveError = ref(null)
+
+async function loadWhatsAppConfig() {
+  try {
+    const cred = await whatsappService.getWhatsAppCredential()
+    if (cred) {
+      whatsappConnected.value = cred.is_active
+      // Extraer phone_number_id y verify_token del label si fue guardado así
+      const labelParts = (cred.label || '').match(/Phone ID: (\S+) \| Verify: (\S+)/)
+      if (labelParts) {
+        waPhoneNumberId.value = labelParts[1]
+        waVerifyToken.value = labelParts[2]
+      }
+      // No pre-cargar el token por seguridad
+    }
+  } catch (e) {
+    console.error('Error cargando config WhatsApp:', e)
+  }
+}
+
+async function saveWhatsAppConfig() {
+  if (!waAccessToken.value || !waPhoneNumberId.value) {
+    waSaveError.value = 'Access Token y Phone Number ID son requeridos'
+    return
+  }
+  try {
+    savingWa.value = true
+    waSaveError.value = null
+    waSaveSuccess.value = false
+    await whatsappService.saveWhatsAppCredential(
+      waAccessToken.value,
+      waPhoneNumberId.value,
+      waVerifyToken.value
+    )
+    waSaveSuccess.value = true
+    whatsappConnected.value = true
+    waAccessToken.value = '' // Limpiar por seguridad
+    setTimeout(() => { waSaveSuccess.value = false }, 3000)
+    await fetchProviders()
+  } catch (e) {
+    waSaveError.value = e.message
+  } finally {
+    savingWa.value = false
+  }
+}
+
 onMounted(() => {
   fetchProviders()
+  loadWhatsAppConfig()
 })
 
 const saveProvider = async () => {
@@ -322,7 +453,6 @@ const saveProvider = async () => {
       provider: providerName,
       label: newForm.label.trim(),
       credential_type: credentialType,
-      credential_value: newForm.credentialValue.trim(),
       is_active: true
     }
 
