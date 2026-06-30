@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase'
+import { AuthService } from './auth.service'
 
 export const QuotesService = {
   async getQuotes() {
@@ -36,13 +37,7 @@ export const QuotesService = {
   },
 
   async getUserRole() {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return null
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-    return profile?.role || null
+    // Fuente única: profiles.role (T-SEC-03)
+    return AuthService.getUserRole()
   }
 }

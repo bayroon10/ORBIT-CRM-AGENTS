@@ -39,7 +39,7 @@
               Editar
             </BaseButton>
             <BaseButton
-              v-if="userRole === 'admin'"
+              v-if="isAdmin(userRole)"
               variant="danger"
               @click="showDeleteModal = true"
             >
@@ -220,6 +220,8 @@
 import { ref, reactive, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { supabase } from '../lib/supabase'
+import { AuthService } from '../services/auth.service'
+import { isAdmin } from '../constants/roles'
 import BaseCard from '../components/BaseCard.vue'
 import BaseBadge from '../components/BaseBadge.vue'
 import BaseButton from '../components/BaseButton.vue'
@@ -254,11 +256,8 @@ const fetchCompanyData = async () => {
   error.value = null
 
   try {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
-      const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-      if (profile) userRole.value = profile.role
-    }
+    // Fuente única de verdad: profiles.role (T-SEC-03)
+    userRole.value = await AuthService.getUserRole()
 
     const { data, error: fetchError } = await supabase
       .from('companies')

@@ -286,6 +286,7 @@
 import { ref, onMounted, watch, nextTick } from 'vue'
 import { gsap } from 'gsap'
 import { DashboardService } from '../services/dashboard.service'
+import { isAdmin as checkIsAdmin } from '../constants/roles'
 import OrbitMetricCard from '../components/OrbitMetricCard.vue'
 import OrbitEmptyState from '../components/OrbitEmptyState.vue'
 import BaseCard from '../components/BaseCard.vue'
@@ -384,7 +385,7 @@ const fetchDashboardData = async () => {
 
   try {
     const role = await DashboardService.getUserRole()
-    isAdmin.value = role === 'admin' || role === 'superadmin'
+    isAdmin.value = checkIsAdmin(role)
 
     const data = await DashboardService.getDashboardMetrics()
     

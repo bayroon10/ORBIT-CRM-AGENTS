@@ -1,13 +1,13 @@
 import { supabase } from '../lib/supabase'
+import { AuthService } from './auth.service'
 
 export const DashboardService = {
   /**
-   * Obtiene el rol del usuario autenticado actual.
+   * Obtiene el rol del usuario autenticado.
+   * Fuente única: profiles.role (T-SEC-03).
    */
   async getUserRole() {
-    const { data: { session }, error } = await supabase.auth.getSession()
-    if (error) throw error
-    return session?.user?.user_metadata?.role || 'seller'
+    return AuthService.getUserRole()
   },
 
   /**

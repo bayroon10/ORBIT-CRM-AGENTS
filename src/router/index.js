@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { supabase } from '../lib/supabase'
 import AppLayout from '../layouts/AppLayout.vue'
 import AuthLayout from '../layouts/AuthLayout.vue'
+import { isAdmin } from '../constants/roles'
+import { AuthService } from '../services/auth.service'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -31,7 +33,8 @@ const router = createRouter({
         { path: 'settings/users', name: 'SettingsUsers', meta: { requiresAdmin: true }, component: () => import('../views/SettingsUsers.vue') },
         { path: 'settings/providers', name: 'ProviderSettings', meta: { requiresAdmin: true }, component: () => import('../views/ProviderSettingsView.vue') },
         { path: 'activity', name: 'Activity', component: () => import('../views/Activity.vue') },
-        { path: 'automation-center', name: 'AutomationCenter', meta: { requiresAdmin: true }, component: () => import('../views/AutomationCenterView.vue') }
+        { path: 'automation-center', name: 'AutomationCenter', meta: { requiresAdmin: true }, component: () => import('../views/AutomationCenterView.vue') },
+        { path: 'whatsapp', name: 'WhatsAppInbox', meta: { requiresAdmin: true }, component: () => import('../views/WhatsAppInbox.vue') }
       ]
     },
     {
@@ -48,15 +51,18 @@ router.beforeEach(async (to) => {
     if (error) throw error
 
     const session = data?.session ?? null
-    const role = session?.user?.user_metadata?.role || 'seller'
 
     if (to.meta.requiresAuth && !session) {
       return { name: 'Login', query: { redirect: to.fullPath } }
     }
-    
-    // RBAC: Block non-admins from accessing requiresAdmin routes
-    if (to.meta.requiresAdmin && role !== 'admin' && role !== 'superadmin') {
-      return { name: 'Dashboard' }
+
+    // RBAC: consultar profiles.role como fuente única (T-SEC-03).
+    // Pasamos session.user.id para evitar el round-trip redundante a getUser() (H2).
+    if (to.meta.requiresAdmin) {
+      const role = await AuthService.getUserRole(session?.user?.id)
+      if (!isAdmin(role)) {
+        return { name: 'Dashboard' }
+      }
     }
 
     if (to.name === 'Login' && session) {

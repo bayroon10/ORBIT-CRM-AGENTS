@@ -47,7 +47,7 @@
               Editar
             </BaseButton>
             <BaseButton
-              v-if="userRole === 'admin'"
+              v-if="isAdmin(userRole)"
               variant="danger"
               @click="showDeleteModal = true"
             >
@@ -197,6 +197,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { QuotesService } from '../services/quotes.service'
+import { isAdmin } from '../constants/roles'
 import BaseCard from '../components/BaseCard.vue'
 import BaseBadge from '../components/BaseBadge.vue'
 import BaseButton from '../components/BaseButton.vue'
