@@ -1,0 +1,635 @@
+[
+  {
+    "name": "WhatsApp Agent",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "whatsapp-agent",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "id": "wa-trigger-001",
+        "name": "WhatsApp Trigger",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 1,
+        "position": [0, 100],
+        "webhookId": "wa-agent-webhook-orbit"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "string": [
+              {
+                "value1": "={{ $json.body[\"hub.mode\"] }}",
+                "operation": "equals",
+                "value2": "subscribe"
+              }
+            ]
+          }
+        },
+        "id": "wa-if-verify-001",
+        "name": "Verificación Meta",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 1,
+        "position": [220, 100]
+      },
+      {
+        "parameters": {
+          "respondWith": "text",
+          "responseBody": "={{ $('WhatsApp Trigger').item.json.body['hub.challenge'] }}",
+          "responseCode": 200,
+          "options": {}
+        },
+        "id": "wa-respond-challenge-001",
+        "name": "Responder Challenge",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1,
+        "position": [440, -60]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "string": [
+              {
+                "value1": "={{ $json.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.type }}",
+                "operation": "equals",
+                "value2": "text"
+              }
+            ]
+          }
+        },
+        "id": "wa-if-has-message-001",
+        "name": "¿Tiene mensaje de texto?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 1,
+        "position": [440, 240]
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={ \"ok\": false, \"reason\": \"not_a_text_message\" }",
+          "responseCode": 200,
+          "options": {}
+        },
+        "id": "wa-respond-skip-001",
+        "name": "Ignorar no-texto",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1,
+        "position": [660, 400]
+      },
+      {
+        "parameters": {
+          "values": {
+            "string": [
+              {
+                "name": "phone",
+                "value": "={{ $('WhatsApp Trigger').item.json.body.entry[0].changes[0].value.messages[0].from }}"
+              },
+              {
+                "name": "message",
+                "value": "={{ $('WhatsApp Trigger').item.json.body.entry[0].changes[0].value.messages[0].text.body }}"
+              },
+              {
+                "name": "wa_message_id",
+                "value": "={{ $('WhatsApp Trigger').item.json.body.entry[0].changes[0].value.messages[0].id }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "wa-extract-data-001",
+        "name": "Extraer Datos Mensaje",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 1,
+        "position": [660, 240]
+      },
+      {
+        "parameters": {
+          "url": "=https://kgrfhfwtcanthrymmvkb.supabase.co/rest/v1/leads?phone=eq.{{ $json.phone }}&select=id,full_name,email,phone,ai_score,ai_category,owner_id",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "={{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Authorization",
+                "value": "=Bearer {{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Accept",
+                "value": "application/json"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "wa-search-lead-001",
+        "name": "Buscar Lead por Teléfono",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [880, 240]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "string": [
+              {
+                "value1": "={{ Array.isArray($json) && $json.length > 0 && $json[0].id !== undefined ? 'yes' : 'no' }}",
+                "operation": "equals",
+                "value2": "yes"
+              }
+            ]
+          }
+        },
+        "id": "wa-if-lead-exists-001",
+        "name": "¿Lead existe?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 1,
+        "position": [1100, 240]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://kgrfhfwtcanthrymmvkb.supabase.co/rest/v1/leads",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "={{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Authorization",
+                "value": "=Bearer {{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "return=representation"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={ \"full_name\": \"WhatsApp: {{ $('Extraer Datos Mensaje').item.json.phone }}\", \"phone\": \"{{ $('Extraer Datos Mensaje').item.json.phone }}\", \"source\": \"whatsapp\", \"status\": \"nuevo\" }",
+          "options": {}
+        },
+        "id": "wa-create-lead-001",
+        "name": "Crear Lead Nuevo",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [1320, 400]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Merge lead data from either branch\nconst extractNode = $('Extraer Datos Mensaje').item.json;\n\nlet leadData = null;\n\n// Try to get from search result first\ntry {\n  const searchResult = $('Buscar Lead por Teléfono').item.json;\n  if (Array.isArray(searchResult) && searchResult.length > 0) {\n    leadData = searchResult[0];\n  }\n} catch(e) {}\n\n// If no search result, try create result\nif (!leadData) {\n  try {\n    const createResult = $('Crear Lead Nuevo').item.json;\n    if (Array.isArray(createResult) && createResult.length > 0) {\n      leadData = createResult[0];\n    } else if (createResult && createResult.id) {\n      leadData = createResult;\n    }\n  } catch(e) {}\n}\n\nreturn [{\n  json: {\n    lead_id: leadData?.id || null,\n    lead_name: leadData?.full_name || 'Cliente nuevo',\n    lead_score: leadData?.ai_score || null,\n    lead_category: leadData?.ai_category || null,\n    phone: extractNode.phone,\n    message: extractNode.message,\n    wa_message_id: extractNode.wa_message_id\n  }\n}];"
+        },
+        "id": "wa-merge-lead-001",
+        "name": "Normalizar Datos Lead",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [1540, 240]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://kgrfhfwtcanthrymmvkb.supabase.co/rest/v1/whatsapp_conversations",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "={{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Authorization",
+                "value": "=Bearer {{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "return=minimal"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ { \"lead_id\": $json.lead_id, \"phone\": $json.phone, \"direction\": \"inbound\", \"message\": $json.message, \"wa_message_id\": $json.wa_message_id, \"ai_generated\": false } }}",
+          "options": {}
+        },
+        "id": "wa-log-inbound-001",
+        "name": "Registrar Mensaje Entrante",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [1760, 240]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={{ $credentials.googlePalmApi.apiKey }}",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ { \"contents\": [{ \"parts\": [{ \"text\": \"Eres el asistente de ventas de Orbit CRM. Responde en español de forma concisa (máximo 3 oraciones).\\n\\nContexto del cliente:\\n- Nombre: \" + ($('Normalizar Datos Lead').item.json.lead_name) + \"\\n- Score IA: \" + ($('Normalizar Datos Lead').item.json.lead_score || 'Sin evaluar') + \"\\n- Categoría: \" + ($('Normalizar Datos Lead').item.json.lead_category || 'Sin categoría') + \"\\n\\nMensaje recibido: \" + ($('Normalizar Datos Lead').item.json.message) + \"\\n\\nResponde de forma útil y profesional.\" }] }], \"generationConfig\": { \"maxOutputTokens\": 2000, \"temperature\": 0.7 } } }}",
+          "options": {}
+        },
+        "id": "wa-gemini-001",
+        "name": "Gemini — Generar Respuesta",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [1980, 240]
+      },
+      {
+        "parameters": {
+          "jsCode": "const response = $input.first().json;\nlet text = '';\ntry {\n  text = response.candidates[0].content.parts[0].text;\n} catch(e) {\n  text = 'Hola, gracias por contactarnos. Un agente te atenderá pronto.';\n}\nreturn [{ json: { ai_response: text.trim() } }];"
+        },
+        "id": "wa-parse-ai-001",
+        "name": "Extraer Respuesta IA",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [2200, 240]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://graph.facebook.com/v19.0/{{ $credentials.metaWhatsAppApi.phoneNumberId }}/messages",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Authorization",
+                "value": "=Bearer {{ $credentials.metaWhatsAppApi.accessToken }}"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ { \"messaging_product\": \"whatsapp\", \"to\": $('Normalizar Datos Lead').item.json.phone, \"type\": \"text\", \"text\": { \"body\": $('Extraer Respuesta IA').item.json.ai_response } } }}",
+          "options": {}
+        },
+        "id": "wa-send-reply-001",
+        "name": "Enviar Respuesta WhatsApp",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [2420, 240]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://kgrfhfwtcanthrymmvkb.supabase.co/rest/v1/whatsapp_conversations",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "={{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Authorization",
+                "value": "=Bearer {{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "return=minimal"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ { \"lead_id\": $('Normalizar Datos Lead').item.json.lead_id, \"phone\": $('Normalizar Datos Lead').item.json.phone, \"direction\": \"outbound\", \"message\": $('Extraer Respuesta IA').item.json.ai_response, \"ai_generated\": true } }}",
+          "options": {}
+        },
+        "id": "wa-log-outbound-001",
+        "name": "Registrar Respuesta Outbound",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [2640, 240]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://kgrfhfwtcanthrymmvkb.supabase.co/rest/v1/automation_logs",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "={{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Authorization",
+                "value": "=Bearer {{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "return=minimal"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ { \"status\": \"success\", \"trigger_event\": \"whatsapp_inbound\", \"payload\": { \"phone\": $('Normalizar Datos Lead').item.json.phone, \"lead_id\": $('Normalizar Datos Lead').item.json.lead_id, \"ai_response_length\": $('Extraer Respuesta IA').item.json.ai_response.length } } }}",
+          "options": {}
+        },
+        "id": "wa-log-success-001",
+        "name": "Loggear Éxito",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [2860, 240]
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={ \"ok\": true }",
+          "responseCode": 200,
+          "options": {}
+        },
+        "id": "wa-respond-ok-001",
+        "name": "Responder OK a Meta",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1,
+        "position": [3080, 240]
+      },
+      {
+        "parameters": {},
+        "id": "wa-error-trigger-001",
+        "name": "Error Trigger",
+        "type": "n8n-nodes-base.errorTrigger",
+        "typeVersion": 1,
+        "position": [0, -200],
+        "continueOnFail": false
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://kgrfhfwtcanthrymmvkb.supabase.co/rest/v1/automation_logs",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "={{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Authorization",
+                "value": "=Bearer {{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "return=minimal"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ { \"status\": \"failed\", \"trigger_event\": \"whatsapp_inbound\", \"error_message\": $json.execution?.error?.message || $json.error?.message || 'Error desconocido', \"payload\": { \"workflow\": $json.workflow?.name, \"last_node\": $json.execution?.lastNodeExecuted } } }}",
+          "options": {}
+        },
+        "id": "wa-log-error-001",
+        "name": "Loggear Error WhatsApp",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [220, -200],
+        "continueOnFail": false
+      }
+    ],
+    "connections": {
+      "WhatsApp Trigger": {
+        "main": [
+          [
+            {
+              "node": "Verificación Meta",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Verificación Meta": {
+        "main": [
+          [
+            {
+              "node": "Responder Challenge",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "¿Tiene mensaje de texto?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "¿Tiene mensaje de texto?": {
+        "main": [
+          [
+            {
+              "node": "Extraer Datos Mensaje",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Ignorar no-texto",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extraer Datos Mensaje": {
+        "main": [
+          [
+            {
+              "node": "Buscar Lead por Teléfono",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Buscar Lead por Teléfono": {
+        "main": [
+          [
+            {
+              "node": "¿Lead existe?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "¿Lead existe?": {
+        "main": [
+          [
+            {
+              "node": "Normalizar Datos Lead",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Crear Lead Nuevo",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Crear Lead Nuevo": {
+        "main": [
+          [
+            {
+              "node": "Normalizar Datos Lead",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Normalizar Datos Lead": {
+        "main": [
+          [
+            {
+              "node": "Registrar Mensaje Entrante",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Registrar Mensaje Entrante": {
+        "main": [
+          [
+            {
+              "node": "Gemini — Generar Respuesta",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Gemini — Generar Respuesta": {
+        "main": [
+          [
+            {
+              "node": "Extraer Respuesta IA",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extraer Respuesta IA": {
+        "main": [
+          [
+            {
+              "node": "Enviar Respuesta WhatsApp",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Enviar Respuesta WhatsApp": {
+        "main": [
+          [
+            {
+              "node": "Registrar Respuesta Outbound",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Registrar Respuesta Outbound": {
+        "main": [
+          [
+            {
+              "node": "Loggear Éxito",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Loggear Éxito": {
+        "main": [
+          [
+            {
+              "node": "Responder OK a Meta",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Error Trigger": {
+        "main": [
+          [
+            {
+              "node": "Loggear Error WhatsApp",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "pinData": {},
+    "active": false,
+    "settings": {
+      "executionOrder": "v1",
+      "saveManualExecutions": true,
+      "callerPolicy": "workflowsFromSameOwner"
+    },
+    "versionId": "wa-agent-v1-orbit-2026",
+    "meta": {
+      "instanceId": "2bb80cd071df62a9fb180cbb85a9d2f9d0446308b05af4ee387661eb2b78c7fa",
+      "templateId": "orbit-whatsapp-agent"
+    },
+    "id": "orbit-whatsapp-agent-v1",
+    "tags": [
+      { "name": "whatsapp", "createdAt": "2026-06-23" },
+      { "name": "orbit-crm", "createdAt": "2026-06-23" }
+    ]
+  }
+]
