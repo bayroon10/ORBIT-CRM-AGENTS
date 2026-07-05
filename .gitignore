@@ -67,8 +67,12 @@ workflow.json
 workflows.json  
 PREMIUM_AUTONOMOUS_UPGRADE_LOG.md  
 N8N_TOTAL_ARCHITECTURAL_AUDIT.md 
-# Docs vac�os  
-docs/ 
+# Docs vac�os (se permite versionar docs/rfc/ explícitamente — RFCs del proyecto)
+# Nota: se usa docs/* (no docs/) porque git no puede reincluir contenido
+# dentro de un directorio ya excluido por completo.
+docs/*
+!docs/rfc/
+!docs/rfc/**
 
 # Debug y archivos temporales de desarrollo
 debug_*.json
