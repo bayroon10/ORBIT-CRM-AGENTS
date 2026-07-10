@@ -153,6 +153,18 @@
         <span>Automatizaciones</span>
       </router-link>
 
+      <router-link
+        v-if="isAdmin"
+        to="/whatsapp"
+        class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 text-slate-400 hover:text-white hover:bg-slate-800/50"
+        active-class="text-white bg-white/5 font-medium"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.13 12.6 19.79 19.79 0 0 1 1.06 4a2 2 0 0 1 1.72-2.18h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+        </svg>
+        <span>WhatsApp</span>
+      </router-link>
+
     </nav>
 
     <!-- SECCIÓN 3 — Footer -->
@@ -177,13 +189,14 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { supabase } from '../lib/supabase'
+import { isAdmin } from '../constants/roles'
 
-const isAdmin = ref(false)
+const isAdminUser = ref(false)
 
 onMounted(async () => {
   const { data: { session } } = await supabase.auth.getSession()
   const role = session?.user?.user_metadata?.role
-  isAdmin.value = role === 'admin' || role === 'superadmin'
+  isAdminUser.value = isAdmin(role)
 })
 </script>
 

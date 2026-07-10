@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Auditoría de Dependencias",
+  "description": "Ejecuta npm audit para detectar vulnerabilidades conocidas en las dependencias. Solo reporta, no aplica cambios.",
+  "version": "1",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "npm audit --audit-level=moderate",
+    "timeout": 120
+  }
+}

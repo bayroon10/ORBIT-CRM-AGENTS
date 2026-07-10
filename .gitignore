@@ -76,3 +76,6 @@ test_*.mjs
 test_*.cjs
 temp_*/
 ORBIT_TOTAL_AUDIT.md
+
+# ORBIT-0000 migration backup (local only, contiene secretos - NUNCA versionar)
+backup_ORBIT-0000/

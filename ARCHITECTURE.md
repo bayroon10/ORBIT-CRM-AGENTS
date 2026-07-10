@@ -55,3 +55,14 @@ The `service_role` key bypasses Row Level Security (RLS) entirely. It is never e
 
 - **Lead Qualifier**: Triggered via a webhook. It fetches lead data, evaluates the quality using Gemini 2.5 Flash, assigns an AI score, and logs the execution.
 - **Follow-up Agent**: Runs on a schedule to assess deal risk. Analyzes the activity timeline and alerts assigned sellers if action is required.
+
+## Database Migrations
+
+To ensure the database schema evolves in a controlled and versioned manner, we use a migration system.
+
+- **Location**: `database/migrations/`
+- **Structure**: Each migration is a `.sql` file named with a sequential number and a descriptive title (e.g., `001_add_get_masked_credential.sql`).
+- **Application**: Migrations are applied manually via the Supabase SQL Editor.
+- **Documentation**: A `README.md` inside the `migrations` folder provides detailed instructions and best practices.
+
+This approach provides a clear audit trail of schema changes and ensures consistency across development and potential future production environments.

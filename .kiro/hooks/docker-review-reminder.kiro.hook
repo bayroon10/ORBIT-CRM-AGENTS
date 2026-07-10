@@ -1,0 +1,19 @@
+{
+  "enabled": true,
+  "name": "Revisión Docker",
+  "description": "Al editar Dockerfile o docker-compose, revisa seguridad y buenas prácticas usando el skill docker-review. Solo aconseja, no modifica ni ejecuta comandos destructivos.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/Dockerfile",
+      "**/docker-compose*.yml",
+      "**/docker-compose*.yaml",
+      "**/*.dockerfile"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Se editó un archivo Docker. Activa el skill docker-review y revisa SOLO (no modifiques archivos ni ejecutes comandos destructivos como rm/prune/down -v): seguridad (usuario no-root, secretos, imagen base fijada), tamaño (multi-stage, capas) y configuración de compose (volúmenes nombrados, healthchecks). Reporta hallazgos priorizados con recomendaciones."
+  }
+}

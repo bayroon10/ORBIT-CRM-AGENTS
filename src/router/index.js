@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { supabase } from '../lib/supabase'
 import AppLayout from '../layouts/AppLayout.vue'
 import AuthLayout from '../layouts/AuthLayout.vue'
+import { isAdmin } from '../constants/roles'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -31,7 +32,8 @@ const router = createRouter({
         { path: 'settings/users', name: 'SettingsUsers', meta: { requiresAdmin: true }, component: () => import('../views/SettingsUsers.vue') },
         { path: 'settings/providers', name: 'ProviderSettings', meta: { requiresAdmin: true }, component: () => import('../views/ProviderSettingsView.vue') },
         { path: 'activity', name: 'Activity', component: () => import('../views/Activity.vue') },
-        { path: 'automation-center', name: 'AutomationCenter', meta: { requiresAdmin: true }, component: () => import('../views/AutomationCenterView.vue') }
+        { path: 'automation-center', name: 'AutomationCenter', meta: { requiresAdmin: true }, component: () => import('../views/AutomationCenterView.vue') },
+        { path: 'whatsapp', name: 'WhatsAppInbox', meta: { requiresAdmin: true }, component: () => import('../views/WhatsAppInbox.vue') }
       ]
     },
     {
@@ -55,7 +57,7 @@ router.beforeEach(async (to) => {
     }
     
     // RBAC: Block non-admins from accessing requiresAdmin routes
-    if (to.meta.requiresAdmin && role !== 'admin' && role !== 'superadmin') {
+    if (to.meta.requiresAdmin && !isAdmin(role)) {
       return { name: 'Dashboard' }
     }
 
