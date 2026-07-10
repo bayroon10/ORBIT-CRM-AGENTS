@@ -80,3 +80,8 @@ test_*.mjs
 test_*.cjs
 temp_*/
 ORBIT_TOTAL_AUDIT.md
+
+# Backups locales (ORBIT-0000) - contienen secretos, nunca versionar
+backup_ORBIT-0000/
+*.backup
+*.bak
