@@ -55,6 +55,19 @@ export const LeadsService = {
   },
 
   /**
+   * Recarga únicamente los campos AI de un lead (ai_score, ai_category,
+   * ai_summary, ai_next_step, ai_analyzed_at) sin traer el resto del perfil.
+   * Usado por LeadDetail.vue tras una calificación exitosa con IA.
+   */
+  async getLeadAiFields(id) {
+    return supabase
+      .from('leads')
+      .select('ai_score, ai_category, ai_summary, ai_next_step, ai_analyzed_at')
+      .eq('id', id)
+      .single()
+  },
+
+  /**
    * Obtiene los negocios (deals) asociados a un lead.
    */
   async getLeadDeals(leadId) {

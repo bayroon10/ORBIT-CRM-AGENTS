@@ -347,6 +347,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { LeadsService } from '../services/leads.service'
+import { supabase } from '../lib/supabase'
 import BaseCard from '../components/BaseCard.vue'
 import BaseBadge from '../components/BaseBadge.vue'
 import BaseButton from '../components/BaseButton.vue'
@@ -370,45 +371,23 @@ const qualifyLead = async () => {
   aiLoading.value = true
   aiError.value = ''
 
-  if (!import.meta.env.VITE_N8N_WEBHOOK_URL) {
-    showAiModal.value = false
-    aiLoading.value = false
-    aiError.value = 'URL del webhook de n8n no está configurada.'
-    setTimeout(() => {
-      aiError.value = ''
-    }, 6000)
-    return
-  }
-  
-  let url = import.meta.env.VITE_N8N_WEBHOOK_URL
-  
+  // La calificación IA se procesa vía Edge Function: el secreto del webhook
+  // se inyecta server-side y nunca viaja en el bundle del cliente.
+  const EDGE_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/quick-processor`
+
   try {
-    let response
-    try {
-      response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Webhook-Secret': import.meta.env.VITE_N8N_WEBHOOK_SECRET
-        },
-        body: JSON.stringify({ lead_id: lead.value.id })
-      })
-    } catch (netErr) {
-      if (url.includes('/webhook/')) {
-        const testUrl = url.replace('/webhook/', '/webhook-test/')
-        console.warn(`[n8n Fallback]: Falló webhook producción. Intentando webhook de pruebas: ${testUrl}`)
-        response = await fetch(testUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Webhook-Secret': import.meta.env.VITE_N8N_WEBHOOK_SECRET
-          },
-          body: JSON.stringify({ lead_id: lead.value.id })
-        })
-      } else {
-        throw netErr
-      }
-    }
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) throw new Error('Sesión inválida. Vuelve a iniciar sesión.')
+
+    const response = await fetch(EDGE_FUNCTION_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + session.access_token,
+        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
+      },
+      body: JSON.stringify({ lead_id: lead.value.id })
+    })
 
     if (!response || !response.ok) {
       throw new Error(`El servidor de automatización devolvió un código de error: ${response ? response.status : 'vacío'}`)
@@ -416,26 +395,24 @@ const qualifyLead = async () => {
 
     const text = await response.text()
     const data = text ? JSON.parse(text) : {}
-    
+
     if (data.error) {
       throw new Error(data.error)
     }
 
+    // Refrescar solo los campos AI sin destruir la vista completa
+    await refreshAiFields()
+
     showAiModal.value = false
     aiSuccess.value = true
-    
-    setTimeout(() => {
-      aiSuccess.value = false
-    }, 4000)
-
-    await fetchLead()
+    setTimeout(() => { aiSuccess.value = false }, 4000)
 
   } catch (err) {
     showAiModal.value = false
     if (
-      err.name === 'TypeError' || 
-      err.message.includes('Failed to fetch') || 
-      err.message.includes('fetch') || 
+      err.name === 'TypeError' ||
+      err.message.includes('Failed to fetch') ||
+      err.message.includes('fetch') ||
       err.message.includes('código de error: vacío') ||
       err.message.includes('empty')
     ) {
@@ -443,11 +420,34 @@ const qualifyLead = async () => {
     } else {
       aiError.value = err.message || 'Error al calificar el lead'
     }
-    setTimeout(() => {
-      aiError.value = ''
-    }, 6000)
+    setTimeout(() => { aiError.value = '' }, 6000)
   } finally {
     aiLoading.value = false
+  }
+}
+
+/**
+ * Recarga únicamente los campos AI del lead desde Supabase
+ * sin activar el spinner global (loading) ni desmontar la vista.
+ */
+const refreshAiFields = async () => {
+  try {
+    const { data, error: fetchError } = await LeadsService.getLeadAiFields(lead.value.id)
+    if (fetchError || !data) {
+      console.error('[refreshAiFields] No se pudieron obtener los campos AI:', fetchError)
+      return
+    }
+    // Parchear en el objeto reactivo solo las columnas AI
+    lead.value = {
+      ...lead.value,
+      ai_score:       data.ai_score,
+      ai_category:    data.ai_category,
+      ai_summary:     data.ai_summary,
+      ai_next_step:   data.ai_next_step,
+      ai_analyzed_at: data.ai_analyzed_at
+    }
+  } catch (err) {
+    console.error('[refreshAiFields] Error inesperado:', err)
   }
 }
 
