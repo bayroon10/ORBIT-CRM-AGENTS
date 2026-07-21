@@ -82,6 +82,8 @@ temp_*/
 ORBIT_TOTAL_AUDIT.md
 
 # Backups locales (ORBIT-0000) - contienen secretos, nunca versionar
+# Contienen schema completo de auth + URLs operativas, no van a repo público
+database/backups/
 backup_ORBIT-0000/
 *.backup
 *.bak
