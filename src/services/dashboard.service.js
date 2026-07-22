@@ -24,7 +24,7 @@ export const DashboardService = {
     ] = await Promise.all([
       supabase.from('leads').select('*', { count: 'exact', head: true }).eq('status', 'nuevo'),
       supabase.from('deals').select('*', { count: 'exact', head: true }).in('stage', ['prospecto', 'cotizado', 'negociando']),
-      supabase.from('deals').select('*', { count: 'exact', head: true }).eq('stage', 'cotizado'),
+      supabase.from('quotes').select('*', { count: 'exact', head: true }).eq('status', 'sent'),
       supabase.from('deals').select('value').eq('stage', 'ganado'),
       supabase.from('leads').select('id, full_name, ai_score, ai_category'),
       supabase.from('activities')

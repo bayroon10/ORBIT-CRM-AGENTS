@@ -273,4 +273,270 @@ DROP TABLE public.ventas;
 - `docs/reports/Technical_Debt.md` (TD-P1-08 / ARC-03, TD-P2-01 / SEC-07).
 - RFC-0001 (formato replicado).
 
-> **STOP.** RFC generado. No se ejecutó ningún DDL ni DML. A la espera de que el Project Owner commitee este documento y de una aprobación explícita adicional en el momento de ejecutar la migración real de datos (§5).
+> **Nota histórica (2026-07-05):** aquí terminaba la versión inicial del RFC. No se ejecutó DDL/DML. El inventario y plan vigentes continúan en §8, que sustituye las secciones indicadas en caso de conflicto.
+
+## 8. Actualización de inventario y plan ejecutable (2026-07-21)
+
+> **Alcance de esta actualización:** inventario y planificación solamente. Evidencia obtenida con consultas `SELECT`/catálogo contra `kgrfhfwtcanthrymmvkb` y lectura del repositorio. No se ejecutó DDL/DML, no se modificó `src/` y no se realizaron operaciones Git de escritura.
+>
+> **Precedencia:** esta sección sustituye §§5.1–5.5 y §6 donde exista conflicto. La decisión B1 (modelo canónico EN) se mantiene; se corrigen la estrategia de IDs, el supuesto de `owner_id` y el orden de retiro de las tablas legacy.
+
+### 8.1 Estado vivo confirmado
+
+| Tabla | Existe físicamente | Filas exactas (`COUNT(*)`) | RLS | Policies | Publicación Realtime |
+|---|---:|---:|---:|---:|---:|
+| `public.cotizaciones` | Sí | **3** | Sí | 0 | No |
+| `public.ventas` | Sí | **0** | Sí | 0 | No |
+| `public.quotes` | Sí | **0** | Sí | 5 | No |
+
+`quotes` no es una referencia huérfana de una policy: es una tabla física con PK, dos FKs, índices, `CHECK` de estado, trigger de numeración y cinco políticas RLS.
+
+Precondiciones observadas:
+
+- Las 3 `cotizaciones.oportunidad_id` apuntan a `deals` existentes: **0 huérfanas**.
+- Colisiones actuales por `quote_number`: **0**.
+- Colisiones actuales por `id`: **0**.
+- Estados presentes: `aceptada` (1), `borrador` (1), `enviada` (1).
+- Los 3 `deals.owner_id` asociados son `NULL`.
+- No existe fallback de propietario: 0 candidatos en `leads.owner_id`, 0 en `companies.owner_id`; las 3 filas carecen de candidato verificable.
+- El tipo `public.estado_cotizacion` solo es usado por `public.cotizaciones.estado_cotizacion`.
+
+### 8.2 Decisión de estrategia
+
+#### Alternativa A — renombrar tabla y columnas
+
+**Descartada.** `quotes` ya existe y es el contrato activo del frontend. Renombrar `cotizaciones` a `quotes` colisionaría con la tabla existente y obligaría a reconstruir políticas, trigger, constraints, grants e índices. El cambio sería más grande y menos reversible.
+
+#### Alternativa B — copiar a `quotes` y eliminar legacy en el mismo despliegue
+
+**No recomendada.** Es técnicamente posible dentro de una transacción, pero combina recuperación de datos y destrucción del origen sin período de observación. Sin tests automatizados, eleva innecesariamente el costo del rollback.
+
+#### Alternativa C — consolidación en dos migraciones (recomendada)
+
+1. **Migración A:** copiar `cotizaciones` a la tabla `quotes` existente, sin eliminar tablas legacy.
+2. Validar RLS, UI y métricas; observar durante al menos un ciclo de release acordado.
+3. **Migración B:** solo después de aceptación, eliminar `cotizaciones`, `ventas` y el enum ya sin uso.
+
+Esta estrategia es la más segura porque el código ya consume `quotes`: no requiere un rename atómico ni un cambio simultáneo de contrato. Durante la observación, el origen permanece disponible para comparación y rollback.
+
+### 8.3 Mapeo exacto: `cotizaciones` → `quotes`
+
+| Origen | Tipo/constraint origen | Destino | Tipo/constraint destino | Regla |
+|---|---|---|---|---|
+| `id` | `uuid NOT NULL`, PK, default `gen_random_uuid()` | `id` | `uuid NOT NULL`, PK | **Preservar el UUID legacy**, previa comprobación de colisión. Mejora trazabilidad y compatibilidad con consumidores externos desconocidos. Sustituye la recomendación anterior de generar un UUID nuevo. |
+| `oportunidad_id` | `uuid NOT NULL`, FK `deals(id) ON DELETE CASCADE` | `deal_id` | `uuid NOT NULL`, FK `deals(id) ON DELETE CASCADE` | Copia directa. Guard obligatorio: 0 referencias huérfanas. |
+| `numero_cotizacion` | `varchar(50) NOT NULL UNIQUE` | `quote_number` | `varchar(50) NOT NULL UNIQUE`, default `''` | Copia directa. Guard obligatorio: 0 colisiones por número. El trigger no reemplaza valores no vacíos. |
+| `monto_cotizado` | `numeric(12,2) NOT NULL` | `amount` | `numeric(12,2) NOT NULL`, default `0.00` | Copia directa, sin redondeo ni conversión. |
+| `fecha_emision` | `date NOT NULL` | `issue_date` | `date NOT NULL`, default `CURRENT_DATE` | Copia directa. |
+| `fecha_validez` | `date NULL` | `valid_until` | `date NULL` | Copia directa. |
+| `estado_cotizacion` | enum `estado_cotizacion`, nullable, default `borrador` | `status` | `varchar(50)`, `CHECK`, default `draft` | Traducir con CASE explícito; ningún `ELSE` silencioso. Un valor desconocido debe abortar la migración. |
+| `fecha_creacion` | `timestamptz NULL`, default `CURRENT_TIMESTAMP` | `created_at` | `timestamptz NULL`, default `CURRENT_TIMESTAMP` | Copia directa para preservar auditoría temporal. |
+| — | No existe | `owner_id` | `uuid NULL`, FK `profiles(id) ON DELETE SET NULL` | **Bloqueante:** no inferir. Los tres deals/leads/companies carecen de owner. Bairon debe aprobar un `profile.id` válido por cotización o aceptar explícitamente acceso solo administrativo con `NULL`. |
+
+Traducción de estado:
+
+| ES | EN |
+|---|---|
+| `borrador` | `draft` |
+| `enviada` | `sent` |
+| `aceptada` | `accepted` |
+| `rechazada` | `rejected` |
+| `expirada` | `expired` |
+
+**Cambio respecto del plan anterior:** no se permite heredar `d.owner_id`, porque la evidencia viva demuestra que es `NULL` en los tres casos. Migrar con `owner_id = NULL` mantendría los registros fuera del alcance de vendedores: las policies de seller requieren `quotes.owner_id = auth.uid()` y la policy basada en deal requiere `deals.owner_id = auth.uid()`.
+
+### 8.4 Tratamiento de `ventas`
+
+`ventas` no representa cotizaciones y no debe copiarse a `quotes`. La aplicación modela una venta cerrada mediante `deals.stage = 'ganado'`; `SalesService` consulta `deals`, no `ventas`.
+
+| Columna legacy | Relación conceptual canónica | Decisión |
+|---|---|---|
+| `id uuid` | No existe entidad `sale` separada | No migrar mientras la tabla siga vacía. |
+| `oportunidad_id uuid` | `deals.id` | Identifica el deal ya existente; no crear otra entidad. |
+| `cliente_id uuid` | `deals.company_id` | Dato redundante; si aparecieran filas, exigir consistencia antes de decidir. |
+| `vendedor_id uuid` | `deals.owner_id` | Dato redundante; no inferir ni sobrescribir ownership. |
+| `monto_venta numeric(12,2)` | `deals.value` | Semánticamente cercano, pero no se debe sobrescribir sin reconciliación fila a fila. |
+| `fecha_venta date` | Sin equivalente exacto | `stage_updated_at` no es un sustituto garantizado; requeriría diseño de `closed_at` si hubiera datos. |
+| `canal_venta varchar(100)` | Sin equivalente | Requeriría extensión del modelo si hubiera datos. |
+| `fecha_creacion timestamptz` | Sin equivalente exacto | No copiar automáticamente a `deals.created_at`. |
+
+**Guard de ejecución:** `SELECT count(*) FROM public.ventas` debe seguir devolviendo 0. Si devuelve más de 0, detener T-ARC-02 y abrir una decisión de modelo separada; no hacer `DROP` ni forzar esas filas dentro de `quotes` o `deals`.
+
+### 8.5 Inventario completo de dependencias de BD
+
+#### `cotizaciones`
+
+- PK: `cotizaciones_pkey (id)`.
+- UNIQUE: `cotizaciones_numero_cotizacion_key (numero_cotizacion)`.
+- FK: `oportunidad_id → deals.id ON DELETE CASCADE`.
+- Índice: `idx_cotizaciones_oportunidad_id`.
+- RLS habilitado, **0 policies**.
+- Triggers: ninguno.
+- Funciones/vistas que la referencien: ninguna detectada.
+- Grants: `anon`, `authenticated`, `postgres` y `service_role`; RLS sigue denegando a clientes al no existir policies.
+
+#### `ventas`
+
+- PK: `ventas_pkey (id)`.
+- FKs: `cliente_id → companies.id ON DELETE RESTRICT`, `oportunidad_id → deals.id ON DELETE RESTRICT`, `vendedor_id → profiles.id ON DELETE RESTRICT`.
+- Índices: `idx_ventas_cliente_id`, `idx_ventas_fecha_venta`, `idx_ventas_oportunidad_id`, `idx_ventas_vendedor_id`.
+- RLS habilitado, **0 policies**.
+- Triggers: ninguno.
+- Funciones/vistas que la referencien: ninguna detectada.
+- Grants: mismos cuatro roles.
+
+#### `quotes`
+
+- PK: `quotes_pkey (id)`.
+- UNIQUE: `quotes_quote_number_key (quote_number)`.
+- CHECK: `status ∈ {draft, sent, accepted, rejected, expired}`.
+- FKs: `deal_id → deals.id ON DELETE CASCADE`; `owner_id → profiles.id ON DELETE SET NULL`.
+- Índices: `idx_quotes_deal`, `idx_quotes_owner`.
+- Trigger: `trg_generate_quote_number BEFORE INSERT`.
+- Función: `generate_quote_number()`; solo genera número cuando `NEW.quote_number` es `NULL` o vacío.
+- Policies: `Admins manage all quotes`, `Sellers insert own quotes`, `Sellers update own quotes`, `Sellers view own quotes`, `Users can manage their own quotes`.
+- Vistas dependientes: ninguna detectada.
+- Publicación Realtime: ninguna de las tres tablas está publicada.
+
+La única migración local que define estos objetos es `supabase/migrations/20260705054055_remote_schema.sql`. Es un baseline histórico y **no debe editarse**; la consolidación debe agregarse como migraciones nuevas.
+
+### 8.6 Inventario de código
+
+#### Cambios obligatorios para coherencia funcional
+
+| Archivo | Cambio futuro | Por qué |
+|---|---|---|
+| `src/services/dashboard.service.js` | Cambiar `cotizacionesEnviadas` para contar `quotes.status = 'sent'` en vez de `deals.stage = 'cotizado'`, o renombrar explícitamente la métrica si el negocio quiere medir deals cotizados. | Hoy la métrica se llama “cotizaciones enviadas” pero no consulta `quotes`; las filas migradas no aparecerían en el dashboard. Requiere decisión semántica del Owner. |
+
+#### Sin cambio de esquema requerido; validar en regresión
+
+- `src/services/quotes.service.js`: único acceso directo a `.from('quotes')`; cubre listar, detalle, crear, actualizar y borrar.
+- `src/views/Quotes.vue`: creación/listado; el payload no envía `owner_id` ni `issue_date` y depende de defaults/policies.
+- `src/views/QuoteDetail.vue`: lectura/edición/borrado de `deal_id`, `amount`, `status` y `valid_until`.
+- `src/services/sales.service.js`: confirma que ventas canónicas son `deals` con `stage = 'ganado'`.
+- `src/views/Sales.vue`: presenta los deals ganados; no consulta `ventas`.
+- `src/views/Dashboard.vue`: consume las métricas y debe validar el resultado de la decisión anterior.
+- `src/router/index.js`: rutas `/quotes`, `/quotes/:id` y `/sales`; no requieren rename.
+- `src/components/OrbitHeader.vue` y `src/components/OrbitSidebar.vue`: etiquetas españolas de presentación; no son referencias al esquema y no deben traducirse.
+
+#### Coincidencias textuales sin dependencia de tabla
+
+- `src/views/Deals.vue`: “pipeline de ventas”.
+- `src/views/QuoteDetail.vue`, `src/views/Quotes.vue`, `src/views/Sales.vue`, `src/views/Dashboard.vue`, `src/components/OrbitHeader.vue`, `src/components/OrbitSidebar.vue`: texto de UI y nombres de variables en español.
+- Los workflows n8n solo contienen la palabra “ventas” en prompts de IA; no referencian `cotizaciones`, `ventas` ni `quotes` como recurso de BD.
+
+**Conclusión de impacto:** no hay código en `src/` que consulte las tablas legacy. La migración de datos es compatible con el contrato actual. Solo `dashboard.service.js` requiere una decisión/corrección para que la métrica represente realmente el modelo canónico.
+
+### 8.7 Orden propuesto para la ejecución real (Nivel 3 separado)
+
+#### Puerta 0 — decisiones y aprobación
+
+1. Bairon clasifica las 3 filas como negocio real o QA.
+2. Bairon define un propietario válido por fila, o acepta por escrito que queden administrativas con `owner_id = NULL`.
+3. Bairon decide si “Cotizaciones enviadas” significa `quotes.status = 'sent'` o `deals.stage = 'cotizado'`.
+4. Aprobar ventana, responsables, rollback y retención del respaldo.
+
+Sin estas decisiones no se crea ni aplica la migración.
+
+#### Fase 1 — preparación sin tocar producción
+
+1. Crear una migración nueva; no editar `20260705054055_remote_schema.sql`.
+2. Preparar backup fuera del repositorio público y un snapshot/PITR administrado. No crear backups con datos dentro de `docs/`, `database/backups/` versionable ni el esquema `public` como solución permanente.
+3. Preparar SELECTs de preflight y post-validación.
+4. Preparar el ajuste separado de `dashboard.service.js` si Bairon confirma la métrica canónica.
+5. Revisar SQL y probarlo en una rama/entorno no productivo restaurado desde esquema equivalente.
+
+#### Fase 2 — Migración A: consolidar sin eliminar
+
+Dentro de una única transacción supervisada:
+
+1. Revalidar conteos y drift: `cotizaciones = 3`, `ventas = 0`, 0 huérfanas, 0 colisiones de ID/número y solo estados mapeados.
+2. Verificar que la matriz de `owner_id` aprobada referencia perfiles existentes.
+3. Insertar las 3 filas en `quotes`, preservando `id`, fechas, monto y número; traducir estado con CASE exhaustivo.
+4. Verificar igualdad fila a fila entre origen y destino, incluida traducción de estado.
+5. Probar acceso con rol admin y con los sellers aprobados; comprobar que ningún seller ve quotes ajenas.
+6. Si cualquier aserción falla, provocar rollback completo. No continuar ni “corregir” datos ad hoc.
+
+No eliminar `cotizaciones`, `ventas` ni `estado_cotizacion` en esta fase.
+
+#### Fase 3 — despliegue y observación
+
+1. Desplegar el ajuste de métrica solo si fue aprobado.
+2. Smoke tests manuales: lista `/quotes`, detalle, edición, filtros, creación, dashboard y `/sales`.
+3. Comparar conteos y montos con el respaldo.
+4. Observar al menos el período acordado y confirmar que no existen consumidores externos ni escrituras nuevas en legacy.
+
+#### Fase 4 — Migración B: retiro definitivo
+
+Solo tras aceptación explícita adicional:
+
+1. Revalidar que `ventas` sigue vacía y que `cotizaciones` no recibió nuevas filas.
+2. Revalidar que no aparecieron views, funciones, FKs, triggers o consumers externos.
+3. Eliminar `cotizaciones` y `ventas` en una migración versionada.
+4. Eliminar `estado_cotizacion` únicamente después de confirmar que no tiene otros usos.
+5. Ejecutar validaciones de catálogo, RLS y aplicación.
+6. Retener el respaldo según política acordada; su eliminación es otra decisión destructiva.
+
+### 8.8 Criterios de aceptación
+
+- Cada fila legacy aparece exactamente una vez en `quotes` con el mismo `id`, deal, número, monto y fechas.
+- La traducción de estado es exacta y no existen valores fuera del `CHECK`.
+- No hay colisiones ni filas huérfanas.
+- La visibilidad RLS coincide con la matriz de owners aprobada.
+- Admin puede gestionar las tres; un seller solo puede gestionar las asignadas.
+- `/quotes`, `/quotes/:id`, creación/edición, dashboard y `/sales` pasan smoke test.
+- Tras Migración B no existen `cotizaciones`, `ventas` ni `estado_cotizacion`, y no quedan dependencias inválidas.
+- El historial de migraciones local/remoto queda alineado.
+
+### 8.9 Riesgos y controles
+
+| Riesgo | Impacto | Control |
+|---|---|---|
+| Ownership inexistente | Alto: datos migrados invisibles para sellers o asignados al usuario incorrecto | Decisión explícita por fila; prohibido inferir. Pruebas RLS con usuarios reales. |
+| Métrica engañosa del dashboard | Medio: negocio cree medir quotes pero cuenta deals | Resolver semántica y cambiar `dashboard.service.js` por separado. |
+| Drift entre planificación y ejecución | Alto | Repetir todos los guards inmediatamente antes de insertar y antes de retirar legacy. |
+| `ventas` recibe filas nuevas | Alto: pérdida de datos si se elimina | Guard `count(*) = 0`; si falla, detener y rediseñar entidad de venta. |
+| Colisión de UUID o número | Alto | Checks previos; abortar transacción, nunca regenerar/sobrescribir silenciosamente. |
+| Policies solapadas en `quotes` | Medio | Probar acceso efectivo; tratar SEC-06 por separado, sin mezclarlo silenciosamente con T-ARC-02. |
+| Consumidor externo no visible en repo | Alto | Confirmación del Owner y período de observación antes del DROP. |
+| Ausencia de tests automatizados | Alto | Entorno de ensayo, smoke tests manuales documentados y migración en dos fases. |
+| Backup expuesto en repo público | Alto | Snapshot administrado + export seguro fuera del repo; verificar `.gitignore` antes de cualquier artefacto local. |
+| Frontend y BD desplegados fuera de orden | Bajo en este caso: frontend ya usa `quotes` | Mantener contrato `quotes`; desplegar solo la corrección de métrica de forma coordinada. |
+
+### 8.10 Estado de salida de esta fase
+
+El inventario está completo para el alcance del repositorio y catálogo PostgreSQL. La ejecución permanece **bloqueada como Nivel 3** hasta resolver ownership, semántica de la métrica, backup y aprobación explícita. Esta actualización no autoriza aplicar migraciones ni modificar código.
+
+## 9. Decisiones del Owner (resolviendo bloqueos de §8)
+
+> **Aprobado por:** Bairon (Project Owner). **Fecha:** 2026-07-22. Esta sección resuelve las dos incógnitas bloqueantes identificadas en §8 (ownership y semántica de métrica). No se ejecutó ningún DDL/DML como parte de esta actualización; es documentación de la decisión, previa a la ejecución real (Nivel 3, separada).
+
+### 9.1 Ownership de las 3 cotizaciones legacy (COT-CRM-001/002/003)
+
+**Decisión:** las 3 cotizaciones se asignarán a `profiles.id = '83c12ae6-0d10-4392-b3fc-cda014dd8a64'` (Administrador General, `admin@orbitcrm.test`).
+
+**Justificación:**
+- Son datos seed/demo: UUIDs secuenciales (`90000000-...0001/2/3` sobre deals `60000000-...0001/2/3`) y mismo timestamp de creación en lote (`fecha_creacion` idéntico en las 3 filas), consistente con una carga por script, no con una captura orgánica fila por fila.
+- No hay owner recuperable por ninguna vía verificada: `deals.owner_id`, `leads.owner_id` y `companies.owner_id` son `NULL` en los 3 casos (§8.1).
+- El otro candidato admin (`qa-admin@orbitcrm.test`) fue descartado: es una cuenta de QA creada el 2026-06-30, 26 días después de que las cotizaciones fueron emitidas (2026-05-25 a 2026-06-02) y posterior también a su `fecha_creacion` en BD (2026-06-04) — no puede haber sido la autora de datos que ya existían antes de que la cuenta existiera.
+
+**Efecto sobre el mapeo de §8.3:** la fila `owner_id` del mapeo `cotizaciones → quotes` queda resuelta: las 3 filas migradas deben insertarse con `owner_id = '83c12ae6-0d10-4392-b3fc-cda014dd8a64'`, no `NULL` y no heredado de `deals.owner_id`.
+
+### 9.2 Métrica `dashboard.service.js` — `cotizacionesEnviadas`
+
+**Decisión:** corregir la métrica para consultar `quotes.status = 'sent'`, en lugar de `deals.stage = 'cotizado'`.
+
+**Justificación:** el nombre de la métrica debe coincidir con lo que realmente mide. La query actual mide una cosa distinta a lo que su nombre indica (etapa de negociación del deal, no estado de una cotización formal).
+
+**Efecto sobre §8.6:** el cambio en `src/services/dashboard.service.js` queda confirmado como obligatorio (ya no condicional a una decisión pendiente). El resto de §8.6 (archivos a validar en regresión, coincidencias textuales sin dependencia) no cambia.
+
+### 9.3 Estado de los bloqueos de §8
+
+| Bloqueo (§8) | Estado | Resolución |
+|---|---|---|
+| Ownership de las 3 cotizaciones | **Resuelto** | §9.1 — `owner_id = '83c12ae6-0d10-4392-b3fc-cda014dd8a64'` |
+| Semántica de `cotizacionesEnviadas` | **Resuelto** | §9.2 — migrar la query a `quotes.status = 'sent'` |
+| Backup fuera del repositorio público | Pendiente | Sin cambios; sigue siendo condición de Fase 1 (§8.7) |
+| Período de observación y aprobación de ejecución | Pendiente | Sin cambios; sigue siendo condición de Puerta 0 / Fase 3 (§8.7) |
+
+La ejecución real de la migración (Fases 1–4 de §8.7) sigue clasificada como **Nivel 3** y requiere aprobación explícita adicional en el momento de ejecutar. Esta sección únicamente cierra las dos decisiones de negocio que bloqueaban la planificación.
