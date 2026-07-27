@@ -1,0 +1,62 @@
+name: Supabase Keep-Alive
+
+# Evita que el proyecto Supabase de producción (kgrfhfwtcanthrymmvkb)
+# se pause por inactividad en el plan Free.
+#
+# Política oficial: proyectos Free se pausan tras 7 días sin queries
+# reales a la BD. Este workflow dispara una query a `profiles` 2x/semana,
+# dando holgura doble sobre el umbral.
+#
+# Secrets requeridos en este repo:
+#   SUPABASE_KEEPALIVE_URL      → https://kgrfhfwtcanthrymmvkb.supabase.co
+#   SUPABASE_KEEPALIVE_ANON_KEY → anon key pública del proyecto de producción
+
+on:
+  schedule:
+    # Lunes 12:00 UTC
+    - cron: '0 12 * * 1'
+    # Jueves 12:00 UTC
+    - cron: '0 12 * * 4'
+  # Permite disparar manualmente desde GitHub Actions UI para verificación
+  workflow_dispatch:
+
+jobs:
+  ping:
+    name: Ping Supabase DB
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Ping profiles table and log result
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_KEEPALIVE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_KEEPALIVE_ANON_KEY }}
+        run: |
+          TIMESTAMP=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "  Supabase Keep-Alive Ping"
+          echo "  Timestamp : $TIMESTAMP"
+          echo "  Target    : ${SUPABASE_URL}/rest/v1/profiles"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+          HTTP_STATUS=$(curl \
+            --silent \
+            --output /dev/null \
+            --write-out "%{http_code}" \
+            --max-time 30 \
+            --header "apikey: ${SUPABASE_ANON_KEY}" \
+            --header "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            "${SUPABASE_URL}/rest/v1/profiles?select=id&limit=1")
+
+          echo "  HTTP Status: ${HTTP_STATUS}"
+
+          if [ "$HTTP_STATUS" -eq 200 ]; then
+            echo "  Result    : OK — BD respondio correctamente"
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            exit 0
+          else
+            echo "  Result    : FALLO — Status inesperado: ${HTTP_STATUS}"
+            echo "  Accion    : Revisar si el proyecto esta pausado o si los secrets son correctos"
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            exit 1
+          fi
