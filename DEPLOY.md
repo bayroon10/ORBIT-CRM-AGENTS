@@ -73,17 +73,18 @@ Para resolver esto, el repositorio incluye un archivo [`vercel.json`](file:///c:
 
 ---
 
-## 4. Aplicación de Migraciones Pendientes en Supabase Producción
+## 4. Estado de Migraciones en Supabase Producción
 
-El estado de migraciones fue verificado contra la CLI de Supabase:
-- Migraciones `20260705054055` a `20260722115547`: **Aplicadas en Producción**.
-- Migración `20260727000000_security_fixes_sec_vuln_01_02_04.sql` (Fixes RLS de automatizaciones, reasignación admin en leads/deals y webhook en workspace_settings): **Pendiente en Producción**.
+Se verificó el estado de la base de datos remota de producción (`kgrfhfwtcanthrymmvkb`) mediante Supabase CLI (`supabase migration list`):
 
-### Pasos para aplicar en Producción:
-1. Abre tu **Supabase Dashboard** (`https://supabase.com/dashboard/project/kgrfhfwtcanthrymmvkb`).
-2. Ve a **SQL Editor** -> **New Query**.
-3. Copia y pega el contenido completo del archivo [`supabase/migrations/20260727000000_security_fixes_sec_vuln_01_02_04.sql`](file:///c:/dev/orbit-crm/supabase/migrations/20260727000000_security_fixes_sec_vuln_01_02_04.sql).
-4. Haz clic en **Run**.
+- **Todas las 5 migraciones están 100% aplicadas en Producción:**
+  1. `20260705054055_remote_schema.sql` (Esquema base)
+  2. `20260717145600_fix_privilege_escalation_and_search_path.sql` (Fix F-SEC-01 y F-SEC-02)
+  3. `20260720172956_remove_jwt_role_fallback.sql` (Fix F-SEC-03)
+  4. `20260722115547_migrate_cotizaciones_to_quotes.sql` (Modelo canónico de cotizaciones)
+  5. `20260727000000_security_fixes_sec_vuln_01_02_04.sql` (Fixes RLS de automations, leads/deals reasignación admin y webhook dinámico)
+
+*Resultado:* La base de datos de producción se encuentra totalmente actualizada y blindada con las reglas de seguridad vigentes. No se requieren ejecuciones manuales adicionales en la base de datos.
 
 ---
 
