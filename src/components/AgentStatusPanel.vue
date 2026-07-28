@@ -87,7 +87,7 @@ const fetchLogs = async () => {
     // Attempt to read from automation_logs to infer last execution times
     const { data, error } = await supabase
       .from('automation_logs')
-      .select('automation_name, created_at')
+      .select('created_at, automations(name)')
       .order('created_at', { ascending: false })
       .limit(10)
 
@@ -98,10 +98,10 @@ const fetchLogs = async () => {
 
     if (data && data.length > 0) {
       // Find latest for each
-      const dr = data.find(l => l.automation_name === 'Deal Risk')
+      const dr = data.find(l => l.automations?.name === 'Deal Risk' || l.automations?.name?.includes('Deal Risk'))
       if (dr) lastRuns.value.dealRisk = new Date(dr.created_at).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
 
-      const ws = data.find(l => l.automation_name === 'Weekly Summary')
+      const ws = data.find(l => l.automations?.name === 'Weekly Summary' || l.automations?.name?.includes('Weekly Summary'))
       if (ws) lastRuns.value.weeklySummary = new Date(ws.created_at).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
     }
   } catch (e) {

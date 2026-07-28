@@ -80,5 +80,12 @@ export const DealsService = {
       .select('id, title, status, due_date')
       .eq('deal_id', dealId)
       .order('due_date', { ascending: true })
+  },
+
+  /**
+   * Actualiza la etapa (stage) de un negocio, usada por el drag-and-drop del kanban.
+   */
+  async updateDealStage(id, newStage) {
+    return await supabase.from('deals').update({ stage: newStage }).eq('id', id)
   }
 }

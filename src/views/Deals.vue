@@ -60,11 +60,17 @@
           </div>
 
           <!-- Column Body (Scrollable) -->
-          <div class="flex-1 overflow-y-auto p-3 pr-2 space-y-3">
+          <div
+            class="flex-1 overflow-y-auto p-3 pr-2 space-y-3"
+            @dragover.prevent
+            @drop="onDrop($event, column.id)"
+          >
             <div
               v-for="(deal, dealIndex) in getDealsByStage(column.id)"
               :key="deal.id"
               v-fade-in="{ delay: 0.2 + (dealIndex * 0.05), duration: 0.4, scale: 0.92, ease: 'back.out(1.4)' }"
+              draggable="true"
+              @dragstart="onDragStart($event, deal)"
               @click="router.push(`/deals/${deal.id}`)"
               class="deal-card bg-slate-800/50 p-4 rounded-xl border border-white/10 cursor-pointer group relative hover:bg-slate-700/50 transition-colors"
             >
@@ -299,6 +305,29 @@ const filteredDeals = computed(() => {
 
 const getDealsByStage = (stageId) => filteredDeals.value.filter(deal => deal.stage === stageId)
 const getColumnTotal = (stageId) => getDealsByStage(stageId).reduce((sum, deal) => sum + Number(deal.value || 0), 0)
+
+// Drag-and-drop nativo (HTML5) del kanban
+const onDragStart = (event, deal) => {
+  event.dataTransfer.setData('text/plain', deal.id)
+}
+
+const onDrop = async (event, newStage) => {
+  const dealId = event.dataTransfer.getData('text/plain')
+  const deal = deals.value.find(d => d.id === dealId)
+  if (!deal || deal.stage === newStage) return
+
+  const previousStage = deal.stage
+  deal.stage = newStage
+
+  try {
+    const { error: updateError } = await DealsService.updateDealStage(dealId, newStage)
+    if (updateError) throw updateError
+  } catch (err) {
+    console.error('Error al actualizar la etapa del negocio:', err)
+    deal.stage = previousStage
+    error.value = 'Ocurrió un error al actualizar la etapa del negocio.'
+  }
+}
 
 const formatCurrency = (value) => {
   if (!value && value !== 0) return '—'
