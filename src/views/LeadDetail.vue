@@ -46,6 +46,17 @@
               Re-analizar
             </BaseButton>
 
+            <BaseButton
+              v-if="canDelete"
+              variant="danger"
+              @click="showDeleteModal = true"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Eliminar
+            </BaseButton>
+
             <button 
               @click="router.push('/leads')"
               class="px-4 py-2 border border-white/10 rounded-lg text-sm font-medium text-slate-400 hover:text-slate-50 hover:bg-slate-800/50 transition-colors"
@@ -70,7 +81,7 @@
         <div class="mx-6 mb-6 animate-fadeInUp">
 
           <!-- ESTADO: análisis disponible -->
-          <BaseCard v-if="lead.ai_score" :padded="false" class="overflow-hidden">
+          <BaseCard v-if="lead.ai_score != null" :padded="false" class="overflow-hidden">
             <!-- Banda de acento superior con color dinámico según score -->
             <div class="h-1 w-full"
                  :class="getScoreAccentClass(lead.ai_score)"></div>
@@ -339,6 +350,27 @@
           </div>
         </template>
       </OrbitModal>
+      <!-- Modal de confirmación de eliminación -->
+      <OrbitModal v-model="showDeleteModal" title="Confirmar eliminación">
+        <p class="text-sm text-slate-400">
+          ¿Estás seguro de que deseas eliminar a <span class="font-semibold text-slate-50">{{ lead?.full_name }}</span>? Esta acción no se puede deshacer.
+        </p>
+        
+        <div v-if="deleteError" class="mt-3 p-3 rounded-lg bg-danger/10 border border-danger/20 text-danger text-xs">
+          {{ deleteError }}
+        </div>
+
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <BaseButton variant="ghost" @click="showDeleteModal = false" :disabled="deleteLoading">
+              Cancelar
+            </BaseButton>
+            <BaseButton variant="danger" @click="handleDeleteLead" :loading="deleteLoading">
+              {{ deleteLoading ? 'Eliminando...' : 'Eliminar Lead' }}
+            </BaseButton>
+          </div>
+        </template>
+      </OrbitModal>
     </template>
   </div>
 </template>
@@ -347,6 +379,8 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { LeadsService } from '../services/leads.service'
+import { AuthService } from '../services/auth.service'
+import { isAdmin } from '../constants/roles'
 import { supabase } from '../lib/supabase'
 import BaseCard from '../components/BaseCard.vue'
 import BaseBadge from '../components/BaseBadge.vue'
@@ -361,6 +395,11 @@ const activities = ref([])
 const deals = ref([])
 const loading = ref(true)
 const error = ref(null)
+
+const canDelete = ref(false)
+const showDeleteModal = ref(false)
+const deleteLoading = ref(false)
+const deleteError = ref('')
 
 const showAiModal = ref(false)
 const aiLoading = ref(false)
@@ -451,11 +490,33 @@ const refreshAiFields = async () => {
   }
 }
 
+const handleDeleteLead = async () => {
+  deleteLoading.value = true
+  deleteError.value = ''
+
+  try {
+    const { error: delError } = await LeadsService.deleteLead(lead.value.id)
+    if (delError) throw delError
+
+    showDeleteModal.value = false
+    router.push('/leads')
+  } catch (err) {
+    console.error('Error al eliminar el lead:', err)
+    deleteError.value = err.message || 'Error al eliminar el prospecto.'
+  } finally {
+    deleteLoading.value = false
+  }
+}
+
 const fetchLead = async () => {
   loading.value = true
   error.value = null
 
   try {
+    const { data: { session } } = await supabase.auth.getSession()
+    const role = await AuthService.getUserRole(session?.user?.id)
+    canDelete.value = isAdmin(role)
+
     const { data, error: leadError } = await LeadsService.getLeadById(route.params.id)
 
     if (leadError || !data) {

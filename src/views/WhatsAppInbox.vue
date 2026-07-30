@@ -185,7 +185,7 @@ onUnmounted(() => {
             </div>
           </div>
           <!-- Lead badge si tiene score -->
-          <div v-if="conv.lead?.ai_score" class="mt-1.5 flex gap-1">
+          <div v-if="conv.lead?.ai_score != null" class="mt-1.5 flex gap-1">
             <span class="text-xs px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-medium">
               Score {{ conv.lead.ai_score }}
             </span>

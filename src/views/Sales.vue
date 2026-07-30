@@ -137,7 +137,7 @@ const fetchSales = async () => {
     // 2. Obtener el conteo total para la tasa de cierre (opcional pero lo hace real)
     const { count, error: countErr } = await SalesService.getTotalDealsCount()
       
-    if (!countErr && count) {
+    if (!countErr && count != null) {
       totalDealsCount.value = count
     } else {
       totalDealsCount.value = sales.value.length // fallback
