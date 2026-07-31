@@ -73,6 +73,7 @@ N8N_TOTAL_ARCHITECTURAL_AUDIT.md
 docs/*
 !docs/rfc/
 !docs/rfc/**
+!docs/DATA_CONTRACTS.md
 
 # Debug y archivos temporales de desarrollo
 debug_*.json

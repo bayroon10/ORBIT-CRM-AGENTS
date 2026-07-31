@@ -76,5 +76,15 @@ export const LeadsService = {
       .select('id, title, value, stage, expected_close')
       .eq('lead_id', leadId)
       .order('created_at', { ascending: false })
+  },
+
+  /**
+   * Elimina un lead por su ID.
+   */
+  async deleteLead(id) {
+    return supabase
+      .from('leads')
+      .delete()
+      .eq('id', id)
   }
 }

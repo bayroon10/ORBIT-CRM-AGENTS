@@ -163,12 +163,16 @@
 
         <div>
           <label class="block text-sm font-medium text-slate-50 mb-1">Empresa</label>
-          <input
-            v-model="form.company"
-            type="text"
-            placeholder="Empresa (Opcional)"
-            class="w-full border border-white/20 rounded-lg px-3 py-2 text-sm bg-slate-900/50 text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-          />
+          <select
+            v-model="form.company_id"
+            :disabled="companiesLoading"
+            class="w-full border border-white/20 rounded-lg px-3 py-2 text-sm bg-slate-900/50 text-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <option value="">{{ companiesLoading ? 'Cargando empresas...' : 'Sin empresa (Opcional)' }}</option>
+            <option v-for="company in companies" :key="company.id" :value="company.id">
+              {{ company.name }}
+            </option>
+          </select>
         </div>
 
         <div>
@@ -208,6 +212,7 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { LeadsService } from '../services/leads.service'
+import { CompaniesService } from '../services/companies.service'
 import OrbitEmptyState from '../components/OrbitEmptyState.vue'
 import OrbitModal from '../components/OrbitModal.vue'
 import BaseCard from '../components/BaseCard.vue'
@@ -220,6 +225,10 @@ const loading = ref(true)
 const error = ref(null)
 const searchQuery = ref('')
 
+// Companies para el selector del formulario
+const companies = ref([])
+const companiesLoading = ref(false)
+
 // Modal & Form State
 const showModal = ref(false)
 const formLoading = ref(false)
@@ -230,7 +239,7 @@ const form = reactive({
   email: '',
   phone: '',
   status: 'nuevo',
-  company: '',
+  company_id: '',
   source: '',
   notes: ''
 })
@@ -240,14 +249,15 @@ const resetForm = () => {
   form.email = ''
   form.phone = ''
   form.status = 'nuevo'
-  form.company = ''
+  form.company_id = ''
   form.source = ''
   form.notes = ''
   formError.value = null
 }
 
 watch(showModal, (newVal) => {
-  if (!newVal) resetForm()
+  if (newVal) fetchCompanies()
+  else resetForm()
 })
 
 const submitLead = async () => {
@@ -262,12 +272,12 @@ const submitLead = async () => {
   try {
     const { error: insertError } = await LeadsService.createLead({
       full_name: form.full_name.trim(),
-      email: form.email.trim(),
-      phone: form.phone.trim(),
+      email: form.email.trim() || null,
+      phone: form.phone.trim() || null,
       status: form.status,
-      company: form.company.trim(),
-      source: form.source.trim(),
-      notes: form.notes.trim()
+      company_id: form.company_id || null,
+      source: form.source.trim() || null,
+      notes: form.notes.trim() || null
     })
 
     if (insertError) throw insertError
@@ -314,6 +324,20 @@ const formatDate = (dateString) => {
   return new Intl.DateTimeFormat('es-CL', {
     dateStyle: 'medium'
   }).format(date)
+}
+
+const fetchCompanies = async () => {
+  companiesLoading.value = true
+  try {
+    const { data, error: err } = await CompaniesService.getCompanies()
+    if (err) throw err
+    companies.value = data || []
+  } catch (err) {
+    console.error('Error al cargar empresas para el formulario:', err)
+    // No-fatal: el <select> quedará vacío, el usuario puede crear el lead sin empresa
+  } finally {
+    companiesLoading.value = false
+  }
 }
 
 const fetchLeads = async () => {
