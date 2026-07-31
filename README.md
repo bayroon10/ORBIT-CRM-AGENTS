@@ -157,6 +157,8 @@ Then open `http://localhost:5678`, configure the Supabase and Gemini credentials
 
 - [Architecture & Data Model](./ARCHITECTURE.md)
 - [Agent Specifications](./AGENTS.md)
+- [Multi-Agent Development Workflow](./docs/WORKFLOW.md)
+- [Data Contracts & Live Schema](./docs/DATA_CONTRACTS.md)
 - [n8n Workflow Skills & Rules](./SKILL_N8N.md)
 - [Webhook Setup](./WEBHOOK_SETUP.md)
 - [Changelog](./CHANGELOG.md)
