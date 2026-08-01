@@ -1,0 +1,499 @@
+[
+  {
+    "name": "Sub-workflow: Create Lead from Chat",
+    "nodes": [
+      {
+        "parameters": {},
+        "id": "sub-trigger-create-lead-001",
+        "name": "Execute Workflow Trigger",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1,
+        "position": [
+          0,
+          100
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $input.first().json || {};\nconst rawText = (input.raw_text || '').toString().trim();\n\nif (!rawText) {\n  throw new Error('No se proporcionó texto de entrada (raw_text) para crear el lead.');\n}\n\nreturn [{\n  json: {\n    raw_text: rawText\n  }\n}];"
+        },
+        "id": "norm-text-001",
+        "name": "Normalizar Raw Text",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 1,
+        "position": [
+          220,
+          100
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "{\"contents\":[{\"parts\":[{\"text\":\"Eres un extractor de información comercial experto. Extrae de forma estructurada los datos del lead a partir del texto ingresado por el usuario.\\n\\nREGLAS DE EXTRACCIÓN:\\n- full_name: Nombre y apellido del lead (OBLIGATORIO). Si no hay nombre de persona claro, responde null.\\n- email: Correo electrónico o null.\\n- phone: Teléfono o null.\\n- source: Canal de origen mencionado o 'chat'.\\n- notes: Detalles extras, intereses u observaciones mencionadas o null.\\n- company_name: Nombre de la empresa u organización mencionada o null.\\n\\nCRÍTICO: Responde ÚNICAMENTE con este JSON plano, sin markdown, sin texto extra:\\n{\\n  \\\"full_name\\\": string|null,\\n  \\\"email\\\": string|null,\\n  \\\"phone\\\": string|null,\\n  \\\"source\\\": string,\\n  \\\"notes\\\": string|null,\\n  \\\"company_name\\\": string|null\\n}\\n\\nTexto del usuario: {{ $json.raw_text }}\"}]}],\"generationConfig\":{\"temperature\":0.1,\"maxOutputTokens\":2000,\"responseMimeType\":\"application/json\"}}",
+          "options": {},
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "googlePalmApi"
+        },
+        "id": "gemini-extract-lead-001",
+        "name": "Extraer Datos con Gemini",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [
+          440,
+          100
+        ],
+        "credentials": {
+          "googlePalmApi": {
+            "id": "YOUR_GEMINI_CREDENTIAL_ID",
+            "name": "Google Gemini API Account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const response = $input.first().json;\nconst rawText = $('Normalizar Raw Text').first().json.raw_text;\n\nlet text = '';\ntry {\n  text = response.candidates[0].content.parts[0].text;\n} catch(e) {\n  text = '{}';\n}\n\nconst cleaned = text.replace(/```json\\n?/gi, '').replace(/```\\n?/g, '').trim();\n\nlet parsed;\ntry {\n  parsed = JSON.parse(cleaned);\n} catch(e) {\n  parsed = {};\n}\n\nconst fullName = parsed.full_name ? String(parsed.full_name).trim() : null;\nconst email = parsed.email ? String(parsed.email).trim().toLowerCase() : null;\nconst phone = parsed.phone ? String(parsed.phone).trim() : null;\nconst source = parsed.source ? String(parsed.source).trim() : 'chat';\nconst notes = parsed.notes ? String(parsed.notes).trim() : null;\nconst companyName = parsed.company_name ? String(parsed.company_name).trim() : null;\n\nreturn [{\n  json: {\n    raw_text: rawText,\n    full_name: fullName,\n    has_full_name: !!fullName,\n    email,\n    phone,\n    source,\n    notes,\n    company_name: companyName\n  }\n}];"
+        },
+        "id": "parse-extracted-lead-001",
+        "name": "Parsear Datos Extraidos",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 1,
+        "position": [
+          660,
+          100
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "boolean": [
+              {
+                "value1": "={{ $json.has_full_name }}",
+                "value2": true
+              }
+            ]
+          }
+        },
+        "id": "if-has-fullname-001",
+        "name": "IF Nombre Valido",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 1,
+        "position": [
+          880,
+          100
+        ]
+      },
+      {
+        "parameters": {
+          "values": {
+            "boolean": [
+              {
+                "name": "success",
+                "value": false
+              }
+            ],
+            "string": [
+              {
+                "name": "error",
+                "value": "No se pudo extraer el nombre completo del lead. Por favor especifica un nombre válido para crear el registro."
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "output-error-no-fullname-001",
+        "name": "Respuesta Error Nombre Faltante",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 1,
+        "position": [
+          1100,
+          280
+        ]
+      },
+      {
+        "parameters": {
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "supabaseApi",
+          "method": "GET",
+          "url": "=https://kgrfhfwtcanthrymmvkb.supabase.co/rest/v1/companies?select=id,name&name=ilike.*{{ encodeURIComponent($json.company_name || '') }}*&limit=1",
+          "sendHeaders": true,
+          "specifyHeaders": "keypair",
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "={{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Authorization",
+                "value": "={{ 'Bearer ' + $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Accept",
+                "value": "application/json"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "get-company-by-name-001",
+        "name": "Consultar Empresa (si aplica)",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [
+          1100,
+          100
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "YOUR_SUPABASE_CREDENTIAL_ID",
+            "name": "Supabase Account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const companyResponse = $input.first().json;\nconst leadData = $('Parsear Datos Extraidos').first().json;\n\nlet companyId = null;\nif (Array.isArray(companyResponse) && companyResponse.length > 0 && companyResponse[0].id) {\n  companyId = companyResponse[0].id;\n} else if (companyResponse && companyResponse.id) {\n  companyId = companyResponse.id;\n}\n\nreturn [{\n  json: {\n    automation_id: 'sub_create_lead_agent',\n    full_name: leadData.full_name,\n    email: leadData.email,\n    phone: leadData.phone,\n    source: leadData.source || 'chat',\n    status: 'nuevo',\n    company_id: companyId,\n    notes: leadData.notes\n  }\n}];"
+        },
+        "id": "assign-company-id-001",
+        "name": "Asignar Company ID",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 1,
+        "position": [
+          1320,
+          100
+        ]
+      },
+      {
+        "parameters": {
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "supabaseApi",
+          "method": "POST",
+          "url": "https://kgrfhfwtcanthrymmvkb.supabase.co/rest/v1/leads",
+          "sendHeaders": true,
+          "specifyHeaders": "keypair",
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "return=representation"
+              },
+              {
+                "name": "apikey",
+                "value": "={{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Authorization",
+                "value": "={{ 'Bearer ' + $credentials.supabaseApi.serviceKey }}"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({ full_name: $json.full_name, email: $json.email, phone: $json.phone, source: $json.source, status: $json.status, company_id: $json.company_id, notes: $json.notes }) }}",
+          "options": {}
+        },
+        "id": "insert-lead-supabase-001",
+        "name": "Insertar Lead en Supabase",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [
+          1540,
+          100
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "YOUR_SUPABASE_CREDENTIAL_ID",
+            "name": "Supabase Account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "supabaseApi",
+          "method": "POST",
+          "url": "https://kgrfhfwtcanthrymmvkb.supabase.co/rest/v1/automation_logs",
+          "sendHeaders": true,
+          "specifyHeaders": "keypair",
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "return=minimal"
+              },
+              {
+                "name": "apikey",
+                "value": "={{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Authorization",
+                "value": "={{ 'Bearer ' + $credentials.supabaseApi.serviceKey }}"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({ automation_id: 'sub_create_lead_agent', status: 'success', payload: { trigger_event: 'sub_create_lead', lead_id: (Array.isArray($json) ? $json[0].id : $json.id), full_name: (Array.isArray($json) ? $json[0].full_name : $json.full_name) } }) }}",
+          "options": {}
+        },
+        "id": "log-success-create-lead-001",
+        "name": "Loggear Exito",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [
+          1760,
+          100
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "YOUR_SUPABASE_CREDENTIAL_ID",
+            "name": "Supabase Account"
+          }
+        },
+        "continueOnFail": false
+      },
+      {
+        "parameters": {
+          "values": {
+            "boolean": [
+              {
+                "name": "success",
+                "value": true
+              }
+            ],
+            "string": [
+              {
+                "name": "lead_id",
+                "value": "={{ Array.isArray($('Insertar Lead en Supabase').first().json) ? $('Insertar Lead en Supabase').first().json[0].id : $('Insertar Lead en Supabase').first().json.id }}"
+              },
+              {
+                "name": "full_name",
+                "value": "={{ Array.isArray($('Insertar Lead en Supabase').first().json) ? $('Insertar Lead en Supabase').first().json[0].full_name : $('Insertar Lead en Supabase').first().json.full_name }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "output-create-lead-001",
+        "name": "Retornar Resultado Estructurado",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 1,
+        "position": [
+          1980,
+          100
+        ]
+      },
+      {
+        "parameters": {},
+        "id": "error-trigger-create-lead-001",
+        "name": "Error Trigger",
+        "type": "n8n-nodes-base.errorTrigger",
+        "typeVersion": 1,
+        "position": [
+          0,
+          -200
+        ],
+        "continueOnFail": false
+      },
+      {
+        "parameters": {
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "supabaseApi",
+          "method": "POST",
+          "url": "https://kgrfhfwtcanthrymmvkb.supabase.co/rest/v1/automation_logs",
+          "sendHeaders": true,
+          "specifyHeaders": "keypair",
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "return=minimal"
+              },
+              {
+                "name": "apikey",
+                "value": "={{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Authorization",
+                "value": "={{ 'Bearer ' + $credentials.supabaseApi.serviceKey }}"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({ automation_id: 'sub_create_lead_agent', status: 'failed', payload: { trigger_event: 'sub_create_lead', error_message: $json.execution?.error?.message || 'Error en ejecucion de sub_create_lead', workflow: $json.workflow?.name, node: $json.execution?.lastNodeExecuted } }) }}",
+          "options": {}
+        },
+        "id": "log-error-create-lead-001",
+        "name": "Loggear Error",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [
+          220,
+          -200
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "YOUR_SUPABASE_CREDENTIAL_ID",
+            "name": "Supabase Account"
+          }
+        },
+        "continueOnFail": false
+      }
+    ],
+    "connections": {
+      "Execute Workflow Trigger": {
+        "main": [
+          [
+            {
+              "node": "Normalizar Raw Text",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Normalizar Raw Text": {
+        "main": [
+          [
+            {
+              "node": "Extraer Datos con Gemini",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extraer Datos con Gemini": {
+        "main": [
+          [
+            {
+              "node": "Parsear Datos Extraidos",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parsear Datos Extraidos": {
+        "main": [
+          [
+            {
+              "node": "IF Nombre Valido",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Nombre Valido": {
+        "main": [
+          [
+            {
+              "node": "Consultar Empresa (si aplica)",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Respuesta Error Nombre Faltante",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Consultar Empresa (si aplica)": {
+        "main": [
+          [
+            {
+              "node": "Asignar Company ID",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Asignar Company ID": {
+        "main": [
+          [
+            {
+              "node": "Insertar Lead en Supabase",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Insertar Lead en Supabase": {
+        "main": [
+          [
+            {
+              "node": "Loggear Exito",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Loggear Exito": {
+        "main": [
+          [
+            {
+              "node": "Retornar Resultado Estructurado",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Error Trigger": {
+        "main": [
+          [
+            {
+              "node": "Loggear Error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "pinData": {},
+    "active": false,
+    "settings": {
+      "executionOrder": "v1"
+    },
+    "versionId": "sub-create-lead-v1-2026",
+    "meta": {
+      "instanceId": "orbit_crm_sub_create_lead"
+    },
+    "id": "sub_create_lead",
+    "tags": []
+  }
+]

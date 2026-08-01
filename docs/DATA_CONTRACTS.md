@@ -225,6 +225,16 @@ La columna real es `full_name`. Si este workflow se reimporta y activa, todos lo
 
 ---
 
+### HALLAZGO-06 — Campo `notes` no se muestra en `LeadDetail.vue` [SEVERIDAD BAJA]
+
+**Columna real en BD:** `notes` (`text`, nullable) — existe y se guarda correctamente (verificado con SQL y QA de browser el 2026-07-31).  
+**Problema:** `LeadDetail.vue` no incluye `notes` en las columnas que consume ni lo despliega en ningún lugar de la UI. El dato se pierde visualmente aunque esté persistido en la base de datos.  
+**Archivo afectado:** `src/views/LeadDetail.vue`  
+**Fix sugerido:** Agregar una sección "Notas" en el detalle del lead, mostrando el valor de `notes` si existe (o un estado vacío tipo "Sin notas" si es `null`).  
+**Estado:** Pendiente, sin arreglar.
+
+---
+
 ## Reglas de uso de este documento
 
 1. **Antes de hacer un SELECT/INSERT/UPDATE** sobre `leads` o `deals`, verificar aquí que las columnas existen.

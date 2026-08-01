@@ -1,0 +1,358 @@
+[
+  {
+    "name": "Sub-workflow: Query CRM",
+    "nodes": [
+      {
+        "parameters": {},
+        "id": "sub-trigger-query-001",
+        "name": "Execute Workflow Trigger",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1,
+        "position": [
+          0,
+          100
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $input.first().json || {};\nconst question = (input.question || '').toString().trim();\n\nreturn [{\n  json: {\n    question: question || 'Resumen general de leads y deals activos'\n  }\n}];"
+        },
+        "id": "norm-question-001",
+        "name": "Normalizar Pregunta",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 1,
+        "position": [
+          220,
+          100
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "{\"contents\":[{\"parts\":[{\"text\":\"Eres un asistente de datos experto para Orbit CRM. Tu tarea es traducir la pregunta del usuario a una consulta REST de lectura (GET) sobre Supabase.\\n\\nREGLAS DE CLASIFICACIÓN DE INTENCIÓN (CRÍTICO):\\n1. CONSULTAS DE LECTURA (is_mutation: false):\\n   - Cualquier pregunta que pida contar, listar, buscar, resumir o consultar datos (ej: '¿cuántos leads tengo?', '¿cuántos deals hay en prospecto?', 'muéstrame los primeros 5 leads', '¿cuál es mi deal más grande?', 'dame el resumen').\\n   - SIEMPRE responde con: {\\\"is_mutation\\\": false, \\\"table\\\": \\\"...\\\", \\\"query_params\\\": \\\"...\\\"}\\n\\n2. MODIFICACIONES / MUTACIONES DE DATOS (is_mutation: true):\\n   - ÚNICAMENTE cuando el usuario pida EXPLÍCITAMENTE modificar, crear, cambiar, actualizar, borrar o eliminar datos (ej: 'eliminar el lead X', 'cambia el estado a ganado', 'crea un nuevo deal', 'borra la empresa Y').\\n   - SIEMPRE responde con: {\\\"is_mutation\\\": true, \\\"refusal\\\": \\\"No se pueden realizar modificaciones de datos desde la consulta conversacional. Por favor utiliza la interfaz del CRM.\\\"}\\n\\nTABLAS Y COLUMNAS VÁLIDAS (ESTRICTAMENTE SEPARADAS POR TABLA):\\n- leads: id, full_name, email, phone, source, status, company_id, created_at, ai_score, ai_category, ai_summary, ai_next_step, ai_analyzed_at, notes\\n- deals: id, title, value, stage, probability, expected_close, stalled, lead_id, company_id, created_at, updated_at, ai_risk_score, ai_risk_factors, ai_analyzed_at\\n- companies: id, name, industry, website, owner_id, created_at\\n\\nREGLAS DE COLUMNAS (CRÍTICO):\\n- NUNCA solicites ni mecles columnas de una tabla que pertenecen a otra.\\n- 'status' pertenece EXCLUSIVAMENTE a la tabla 'leads'. NUNCA usar 'status' en 'deals'.\\n- 'stage' pertenece EXCLUSIVAMENTE a la tabla 'deals'. NUNCA usar 'stage' en 'leads'.\\n- 'full_name' pertenece EXCLUSIVAMENTE a 'leads' (NUNCA usar 'name' en leads).\\n- 'title' pertenece EXCLUSIVAMENTE a 'deals' (NUNCA usar 'name' o 'amount' en deals).\\n\\nESTRUCTURA DE RESPUESTA JSON:\\nSi es consulta de lectura:\\n{\\n  \\\"is_mutation\\\": false,\\n  \\\"table\\\": \\\"leads\\\" | \\\"deals\\\" | \\\"companies\\\",\\n  \\\"query_params\\\": \\\"select=id,full_name,status&status=eq.nuevo&limit=50\\\"\\n}\\n\\nPregunta del usuario: {{ $json.question }}\"}]}],\"generationConfig\":{\"temperature\":0.1,\"maxOutputTokens\":2000,\"responseMimeType\":\"application/json\"}}",
+          "options": {},
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "googlePalmApi"
+        },
+        "id": "gemini-intent-001",
+        "name": "Interpretar Pregunta (Gemini)",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [
+          440,
+          100
+        ],
+        "credentials": {
+          "googlePalmApi": {
+            "id": "YOUR_GEMINI_CREDENTIAL_ID",
+            "name": "Google Gemini API Account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const response = $input.first().json;\nconst userQuestion = $('Normalizar Pregunta').first().json.question;\n\nlet text = '';\ntry {\n  text = response.candidates[0].content.parts[0].text;\n} catch(e) {\n  text = '{\"is_mutation\": false, \"table\": \"leads\", \"query_params\": \"select=id,full_name,status&limit=10\"}';\n}\n\nconst cleaned = text.replace(/```json\\n?/gi, '').replace(/```\\n?/g, '').trim();\n\nlet parsed;\ntry {\n  parsed = JSON.parse(cleaned);\n} catch(e) {\n  parsed = { is_mutation: false, table: 'leads', query_params: 'select=id,full_name,status&limit=10' };\n}\n\nif (parsed.is_mutation) {\n  return [{\n    json: {\n      skip_fetch: true,\n      question: userQuestion,\n      refusal_message: parsed.refusal || 'No se pueden realizar modificaciones de datos desde la consulta conversacional. Por favor utiliza la interfaz del CRM.'\n    }\n  }];\n}\n\nconst allowedTables = ['leads', 'deals', 'companies'];\nconst table = allowedTables.includes(parsed.table) ? parsed.table : 'leads';\nlet queryParams = parsed.query_params || 'select=*&limit=20';\n\n// Schema de columnas válidas por tabla\nconst tableSchemas = {\n  leads: ['id', 'full_name', 'email', 'phone', 'source', 'status', 'company_id', 'created_at', 'ai_score', 'ai_category', 'ai_summary', 'ai_next_step', 'ai_analyzed_at', 'notes'],\n  deals: ['id', 'title', 'value', 'stage', 'probability', 'expected_close', 'stalled', 'lead_id', 'company_id', 'created_at', 'updated_at', 'ai_risk_score', 'ai_risk_factors', 'ai_analyzed_at'],\n  companies: ['id', 'name', 'industry', 'website', 'owner_id', 'created_at']\n};\n\n// Sanitización y corrección según la tabla seleccionada\nif (table === 'leads') {\n  queryParams = queryParams\n    .replace(/\\bstage\\b/g, 'status')\n    .replace(/\\bname\\b/g, 'full_name')\n    .replace(/\\bamount\\b/g, 'value');\n} else if (table === 'deals') {\n  queryParams = queryParams\n    .replace(/\\bstatus\\b/g, 'stage')\n    .replace(/\\bname\\b/g, 'title')\n    .replace(/\\bamount\\b/g, 'value');\n} else if (table === 'companies') {\n  queryParams = queryParams\n    .replace(/\\bfull_name\\b/g, 'name')\n    .replace(/\\btitle\\b/g, 'name');\n}\n\n// Validar que las columnas solicitadas en select= pertenezcan a la tabla\nconst validColumns = tableSchemas[table];\nconst selectMatch = queryParams.match(/select=([^&]+)/);\nif (selectMatch && selectMatch[1] && selectMatch[1] !== '*') {\n  const requestedCols = selectMatch[1].split(',').map(c => c.trim());\n  const filteredCols = requestedCols.filter(col => validColumns.includes(col));\n  if (filteredCols.length === 0) {\n    const defaultCol = table === 'leads' ? 'id,full_name,status' : table === 'deals' ? 'id,title,stage,value' : 'id,name';\n    queryParams = queryParams.replace(/select=[^&]+/, `select=${defaultCol}`);\n  } else {\n    queryParams = queryParams.replace(/select=[^&]+/, `select=${filteredCols.join(',')}`);\n  }\n}\n\nreturn [{\n  json: {\n    skip_fetch: false,\n    question: userQuestion,\n    table,\n    query_params: queryParams\n  }\n}];"
+        },
+        "id": "parse-intent-001",
+        "name": "Parsear Intencion de Consulta",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 1,
+        "position": [
+          660,
+          100
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "boolean": [
+              {
+                "value1": "={{ $json.skip_fetch }}",
+                "value2": false
+              }
+            ]
+          }
+        },
+        "id": "if-valid-query-001",
+        "name": "IF Es Consulta Valida",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 1,
+        "position": [
+          880,
+          100
+        ]
+      },
+      {
+        "parameters": {
+          "values": {
+            "boolean": [
+              {
+                "name": "success",
+                "value": false
+              }
+            ],
+            "string": [
+              {
+                "name": "answer_text",
+                "value": "={{ $json.refusal_message }}"
+              },
+              {
+                "name": "raw_data",
+                "value": "=[]"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "output-refusal-001",
+        "name": "Respuesta Rechazo Mutacion",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 1,
+        "position": [
+          1100,
+          280
+        ]
+      },
+      {
+        "parameters": {
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "supabaseApi",
+          "method": "GET",
+          "url": "=https://kgrfhfwtcanthrymmvkb.supabase.co/rest/v1/{{ $json.table }}?{{ $json.query_params }}",
+          "sendHeaders": true,
+          "specifyHeaders": "keypair",
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "={{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Authorization",
+                "value": "={{ 'Bearer ' + $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Accept",
+                "value": "application/json"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "get-supabase-crm-001",
+        "name": "Consultar Supabase (GET Only)",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [
+          1100,
+          100
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "YOUR_SUPABASE_CREDENTIAL_ID",
+            "name": "Supabase Account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "{\"contents\":[{\"parts\":[{\"text\":\"Eres el asistente conversacional de Orbit CRM. Responde a la pregunta del usuario en un tono profesional, claro y conciso basándote ÚNICAMENTE en estos datos obtenidos del CRM:\\nPregunta: {{ $('Parsear Intencion de Consulta').first().json.question }}\\nDatos reales: {{ JSON.stringify($json) }}\\n\\nREGLAS:\\n- Da la respuesta directa en 1-2 párrafos cortos.\\n- Destaca números o valores importantes en **negrita**.\\n- NUNCA inventes datos que no estén en la respuesta JSON.\"}]}],\"generationConfig\":{\"temperature\":0.2,\"maxOutputTokens\":2000}}",
+          "options": {},
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "googlePalmApi"
+        },
+        "id": "gemini-answer-001",
+        "name": "Generar Respuesta Natural (Gemini)",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [
+          1320,
+          100
+        ],
+        "credentials": {
+          "googlePalmApi": {
+            "id": "YOUR_GEMINI_CREDENTIAL_ID",
+            "name": "Google Gemini API Account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const response = $input.first().json;\nconst rawData = $('Consultar Supabase (GET Only)').first().json;\n\nlet text = '';\ntry {\n  text = response.candidates[0].content.parts[0].text;\n} catch(e) {\n  text = 'Se encontraron ' + (Array.isArray(rawData) ? rawData.length : 1) + ' registros en la consulta.';\n}\n\nconst sanitized = text\n  .replace(/```markdown\\n?/gi, '')\n  .replace(/```json\\n?/gi, '')\n  .replace(/```\\n?/g, '')\n  .trim();\n\nreturn [{\n  json: {\n    answer_text: sanitized,\n    raw_data: rawData\n  }\n}];"
+        },
+        "id": "parse-answer-001",
+        "name": "Parsear y Formatear Respuesta",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 1,
+        "position": [
+          1540,
+          100
+        ]
+      },
+      {
+        "parameters": {
+          "values": {
+            "boolean": [
+              {
+                "name": "success",
+                "value": true
+              }
+            ],
+            "string": [
+              {
+                "name": "answer_text",
+                "value": "={{ $json.answer_text }}"
+              },
+              {
+                "name": "raw_data",
+                "value": "={{ Array.isArray($json.raw_data) ? $json.raw_data : [$json.raw_data] }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "output-query-001",
+        "name": "Retornar Resultado Estructurado",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 1,
+        "position": [
+          1760,
+          100
+        ]
+      }
+    ],
+    "connections": {
+      "Execute Workflow Trigger": {
+        "main": [
+          [
+            {
+              "node": "Normalizar Pregunta",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Normalizar Pregunta": {
+        "main": [
+          [
+            {
+              "node": "Interpretar Pregunta (Gemini)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Interpretar Pregunta (Gemini)": {
+        "main": [
+          [
+            {
+              "node": "Parsear Intencion de Consulta",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parsear Intencion de Consulta": {
+        "main": [
+          [
+            {
+              "node": "IF Es Consulta Valida",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Es Consulta Valida": {
+        "main": [
+          [
+            {
+              "node": "Consultar Supabase (GET Only)",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Respuesta Rechazo Mutacion",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Consultar Supabase (GET Only)": {
+        "main": [
+          [
+            {
+              "node": "Generar Respuesta Natural (Gemini)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Generar Respuesta Natural (Gemini)": {
+        "main": [
+          [
+            {
+              "node": "Parsear y Formatear Respuesta",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parsear y Formatear Respuesta": {
+        "main": [
+          [
+            {
+              "node": "Retornar Resultado Estructurado",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "pinData": {},
+    "active": false,
+    "settings": {
+      "executionOrder": "v1"
+    },
+    "versionId": "sub-query-v1-2026",
+    "meta": {
+      "instanceId": "orbit_crm_sub_query_crm"
+    },
+    "id": "sub_query_crm",
+    "tags": []
+  }
+]

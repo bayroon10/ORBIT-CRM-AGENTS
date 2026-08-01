@@ -1,0 +1,437 @@
+[
+  {
+    "name": "🤖 Orquestador de Agentes OrbitCRM",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "chat",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "id": "webhook-chat-001",
+        "name": "Webhook /chat",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 1,
+        "position": [0, 100],
+        "webhookId": "orbit-crm-webhook-chat"
+      },
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "crm-event",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "id": "webhook-crm-event-001",
+        "name": "Webhook /crm-event",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 1,
+        "position": [0, 500],
+        "webhookId": "orbit-crm-webhook-crm-event"
+      },
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "0 8 * * 1"
+              }
+            ]
+          }
+        },
+        "id": "schedule-cron-001",
+        "name": "Schedule Cron Semanal",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.1,
+        "position": [0, 900]
+      },
+      {
+        "parameters": {
+          "jsCode": "const body = $input.first().json.body || $input.first().json || {};\nconst message = (body.message || body.text || '').toString().trim();\n\nif (!message) {\n  throw new Error('El payload del chat no contiene ningún mensaje (campo message).');\n}\n\nreturn [{ json: { message } }];"
+        },
+        "id": "norm-chat-message-001",
+        "name": "Normalizar Mensaje Chat",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 1,
+        "position": [220, 100]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "googlePalmApi",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              { "name": "Content-Type", "value": "application/json" }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "{\"contents\":[{\"parts\":[{\"text\":\"Eres el Orquestador IA de Orbit CRM. Tu tarea es analizar el mensaje del usuario y clasificar la intención en UNA de las 5 capacidades disponibles:\\n\\n1. query_crm: Para consultar o preguntar datos del CRM en lenguaje natural (ej: 'cuántos leads tengo', 'cuál es mi deal más grande').\\n2. create_lead: Para ingresar o registrar un nuevo lead a partir de datos en el texto (ej: 'cargá a Juan Perez, juan@email.com').\\n3. get_summary: Para solicitar un resumen o reporte de métricas del CRM (ej: 'dame el resumen semanal', 'resumen de ventas').\\n4. qualify_lead: Para solicitar la calificación o scoring de un lead específico mediante su ID (ej: 'califica el lead UUID').\\n5. assess_deal_risk: Para analizar el riesgo de un negocio o deal específico mediante su ID (ej: 'evalua el riesgo del deal UUID').\\n\\nESTRUCTURA DE RESPUESTA JSON:\\n{\\n  \\\"intent\\\": \\\"query_crm\\\" | \\\"create_lead\\\" | \\\"get_summary\\\" | \\\"qualify_lead\\\" | \\\"assess_deal_risk\\\",\\n  \\\"params\\\": {\\n    \\\"question\\\": string,\\n    \\\"raw_text\\\": string,\\n    \\\"lead_id\\\": string|null,\\n    \\\"deal_id\\\": string|null,\\n    \\\"date_from\\\": string|null,\\n    \\\"date_to\\\": string|null\\n  }\\n}\\n\\nMensaje del usuario: {{ $json.message }}\"}]}],\"generationConfig\":{\"temperature\":0.1,\"maxOutputTokens\":2000,\"responseMimeType\":\"application/json\"}}",
+          "options": {}
+        },
+        "id": "gemini-router-001",
+        "name": "Clasificar Intencion Chat (Gemini Router)",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [440, 100],
+        "credentials": {
+          "googlePalmApi": {
+            "id": "YOUR_GEMINI_CREDENTIAL_ID",
+            "name": "Google Gemini API Account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const response = $input.first().json;\nconst userMessage = $('Normalizar Mensaje Chat').first().json.message;\n\nlet text = '';\ntry {\n  text = response.candidates[0].content.parts[0].text;\n} catch(e) {\n  text = '{}';\n}\n\nconst cleaned = text.replace(/```json\\n?/gi, '').replace(/```\\n?/g, '').trim();\n\nlet parsed;\ntry {\n  parsed = JSON.parse(cleaned);\n} catch(e) {\n  parsed = { intent: 'query_crm', params: { question: userMessage } };\n}\n\nconst validIntents = ['query_crm', 'create_lead', 'get_summary', 'qualify_lead', 'assess_deal_risk'];\nconst intent = validIntents.includes(parsed.intent) ? parsed.intent : 'query_crm';\nconst params = parsed.params || {};\n\nreturn [{\n  json: {\n    message: userMessage,\n    intent,\n    params: {\n      question: params.question || userMessage,\n      raw_text: params.raw_text || userMessage,\n      lead_id: params.lead_id || null,\n      deal_id: params.deal_id || null,\n      date_from: params.date_from || null,\n      date_to: params.date_to || null\n    }\n  }\n}];"
+        },
+        "id": "parse-router-001",
+        "name": "Parsear Intencion Router",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 1,
+        "position": [660, 100]
+      },
+      {
+        "parameters": {
+          "dataType": "string",
+          "value1": "={{ $json.intent }}",
+          "rules": {
+            "rules": [
+              { "value2": "query_crm", "output": 0 },
+              { "value2": "create_lead", "output": 1 },
+              { "value2": "get_summary", "output": 2 },
+              { "value2": "qualify_lead", "output": 3 },
+              { "value2": "assess_deal_risk", "output": 4 }
+            ]
+          },
+          "fallbackOutput": 0
+        },
+        "id": "switch-chat-intent-001",
+        "name": "Switch Intencion Chat",
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 1,
+        "position": [880, 100]
+      },
+      {
+        "parameters": {
+          "workflowId": "sub_query_crm",
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "question": "={{ $json.params.question }}"
+            }
+          }
+        },
+        "id": "exec-tool-query-crm-001",
+        "name": "Tool: query_crm (sub_query_crm.json)",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1,
+        "position": [1140, -100]
+      },
+      {
+        "parameters": {
+          "workflowId": "sub_create_lead",
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "raw_text": "={{ $json.params.raw_text }}"
+            }
+          }
+        },
+        "id": "exec-tool-create-lead-001",
+        "name": "Tool: create_lead_from_chat (sub_create_lead.json)",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1,
+        "position": [1140, 50]
+      },
+      {
+        "parameters": {
+          "workflowId": "sub_weekly_summary",
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "date_from": "={{ $json.params.date_from }}",
+              "date_to": "={{ $json.params.date_to }}"
+            }
+          }
+        },
+        "id": "exec-tool-weekly-summary-001",
+        "name": "Tool: get_summary (sub_weekly_summary.json)",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1,
+        "position": [1140, 200]
+      },
+      {
+        "parameters": {
+          "workflowId": "sub_lead_qualifier",
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "lead_id": "={{ $json.params.lead_id }}"
+            }
+          }
+        },
+        "id": "exec-tool-qualify-lead-001",
+        "name": "Tool: qualify_lead (sub_lead_qualifier.json)",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1,
+        "position": [1140, 350]
+      },
+      {
+        "parameters": {
+          "workflowId": "sub_deal_risk",
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "deal_id": "={{ $json.params.deal_id }}"
+            }
+          }
+        },
+        "id": "exec-tool-deal-risk-001",
+        "name": "Tool: assess_deal_risk (sub_deal_risk.json)",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1,
+        "position": [1140, 500]
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ JSON.stringify($json) }}",
+          "options": {}
+        },
+        "id": "respond-chat-webhook-001",
+        "name": "Responder Webhook Chat",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1,
+        "position": [1450, 100]
+      },
+      {
+        "parameters": {
+          "jsCode": "const body = $input.first().json.body || $input.first().json || {};\nconst eventType = (body.event_type || body.type || 'lead_created').toString().trim().toLowerCase();\nconst leadId = body.lead_id || body.record?.id || null;\nconst dealId = body.deal_id || body.record?.id || null;\n\nlet targetAction = 'qualify_lead';\nif (eventType.includes('deal')) {\n  targetAction = 'assess_deal_risk';\n}\n\nreturn [{\n  json: {\n    event_type: eventType,\n    target_action: targetAction,\n    lead_id: leadId,\n    deal_id: dealId\n  }\n}];"
+        },
+        "id": "parse-crm-event-001",
+        "name": "Parsear Evento CRM Directo",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 1,
+        "position": [220, 500]
+      },
+      {
+        "parameters": {
+          "dataType": "string",
+          "value1": "={{ $json.target_action }}",
+          "rules": {
+            "rules": [
+              { "value2": "qualify_lead", "output": 0 },
+              { "value2": "assess_deal_risk", "output": 1 }
+            ]
+          },
+          "fallbackOutput": 0
+        },
+        "id": "switch-direct-event-001",
+        "name": "Switch Evento CRM (Directo Sin IA)",
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 1,
+        "position": [440, 500]
+      },
+      {
+        "parameters": {
+          "workflowId": "sub_lead_qualifier",
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "lead_id": "={{ $json.lead_id }}"
+            }
+          }
+        },
+        "id": "exec-direct-qualify-lead-001",
+        "name": "Ejecutar Directo: Qualify Lead",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1,
+        "position": [700, 420]
+      },
+      {
+        "parameters": {
+          "workflowId": "sub_deal_risk",
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "deal_id": "={{ $json.deal_id }}"
+            }
+          }
+        },
+        "id": "exec-direct-deal-risk-001",
+        "name": "Ejecutar Directo: Deal Risk",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1,
+        "position": [700, 580]
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ JSON.stringify($json) }}",
+          "options": {}
+        },
+        "id": "respond-event-webhook-001",
+        "name": "Responder Webhook Evento",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1,
+        "position": [950, 500]
+      },
+      {
+        "parameters": {
+          "workflowId": "sub_weekly_summary",
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {}
+          }
+        },
+        "id": "exec-cron-weekly-summary-001",
+        "name": "Ejecutar Cron: Weekly Summary",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1,
+        "position": [300, 900]
+      }
+    ],
+    "connections": {
+      "Webhook /chat": {
+        "main": [
+          [
+            { "node": "Normalizar Mensaje Chat", "type": "main", "index": 0 }
+          ]
+        ]
+      },
+      "Normalizar Mensaje Chat": {
+        "main": [
+          [
+            { "node": "Clasificar Intencion Chat (Gemini Router)", "type": "main", "index": 0 }
+          ]
+        ]
+      },
+      "Clasificar Intencion Chat (Gemini Router)": {
+        "main": [
+          [
+            { "node": "Parsear Intencion Router", "type": "main", "index": 0 }
+          ]
+        ]
+      },
+      "Parsear Intencion Router": {
+        "main": [
+          [
+            { "node": "Switch Intencion Chat", "type": "main", "index": 0 }
+          ]
+        ]
+      },
+      "Switch Intencion Chat": {
+        "main": [
+          [
+            { "node": "Tool: query_crm (sub_query_crm.json)", "type": "main", "index": 0 }
+          ],
+          [
+            { "node": "Tool: create_lead_from_chat (sub_create_lead.json)", "type": "main", "index": 0 }
+          ],
+          [
+            { "node": "Tool: get_summary (sub_weekly_summary.json)", "type": "main", "index": 0 }
+          ],
+          [
+            { "node": "Tool: qualify_lead (sub_lead_qualifier.json)", "type": "main", "index": 0 }
+          ],
+          [
+            { "node": "Tool: assess_deal_risk (sub_deal_risk.json)", "type": "main", "index": 0 }
+          ]
+        ]
+      },
+      "Tool: query_crm (sub_query_crm.json)": {
+        "main": [
+          [
+            { "node": "Responder Webhook Chat", "type": "main", "index": 0 }
+          ]
+        ]
+      },
+      "Tool: create_lead_from_chat (sub_create_lead.json)": {
+        "main": [
+          [
+            { "node": "Responder Webhook Chat", "type": "main", "index": 0 }
+          ]
+        ]
+      },
+      "Tool: get_summary (sub_weekly_summary.json)": {
+        "main": [
+          [
+            { "node": "Responder Webhook Chat", "type": "main", "index": 0 }
+          ]
+        ]
+      },
+      "Tool: qualify_lead (sub_lead_qualifier.json)": {
+        "main": [
+          [
+            { "node": "Responder Webhook Chat", "type": "main", "index": 0 }
+          ]
+        ]
+      },
+      "Tool: assess_deal_risk (sub_deal_risk.json)": {
+        "main": [
+          [
+            { "node": "Responder Webhook Chat", "type": "main", "index": 0 }
+          ]
+        ]
+      },
+      "Webhook /crm-event": {
+        "main": [
+          [
+            { "node": "Parsear Evento CRM Directo", "type": "main", "index": 0 }
+          ]
+        ]
+      },
+      "Parsear Evento CRM Directo": {
+        "main": [
+          [
+            { "node": "Switch Evento CRM (Directo Sin IA)", "type": "main", "index": 0 }
+          ]
+        ]
+      },
+      "Switch Evento CRM (Directo Sin IA)": {
+        "main": [
+          [
+            { "node": "Ejecutar Directo: Qualify Lead", "type": "main", "index": 0 }
+          ],
+          [
+            { "node": "Ejecutar Directo: Deal Risk", "type": "main", "index": 0 }
+          ]
+        ]
+      },
+      "Ejecutar Directo: Qualify Lead": {
+        "main": [
+          [
+            { "node": "Responder Webhook Evento", "type": "main", "index": 0 }
+          ]
+        ]
+      },
+      "Ejecutar Directo: Deal Risk": {
+        "main": [
+          [
+            { "node": "Responder Webhook Evento", "type": "main", "index": 0 }
+          ]
+        ]
+      },
+      "Schedule Cron Semanal": {
+        "main": [
+          [
+            { "node": "Ejecutar Cron: Weekly Summary", "type": "main", "index": 0 }
+          ]
+        ]
+      }
+    },
+    "pinData": {},
+    "active": false,
+    "settings": { "executionOrder": "v1" },
+    "versionId": "orchestrator-v1-2026",
+    "meta": { "instanceId": "orbit_crm_orchestrator" },
+    "id": "orchestrator",
+    "tags": []
+  }
+]

@@ -10,6 +10,8 @@ Environment variables — NUNCA subir al repo
 .env
 .env.local
 .env.*.local
+.env.test
+.env.e2e
 
 Editor
 .vscode/settings.json
@@ -50,6 +52,10 @@ supabase/.temp/
 # Docker / n8n local
 .n8n-data/
 .env.n8n
+# Snapshots locales de n8n (contienen credenciales cifradas)
+n8n/*.sqlite
+n8n/n8n-db-snapshot.sqlite
+
 
   
 # QA scripts internos  

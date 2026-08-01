@@ -1,0 +1,478 @@
+[
+  {
+    "name": "Sub-workflow: Weekly Summary",
+    "nodes": [
+      {
+        "parameters": {},
+        "id": "sub-trigger-summary-001",
+        "name": "Execute Workflow Trigger",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1,
+        "position": [
+          0,
+          100
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const input = $input.first().json || {};\nconst now = new Date();\n\nlet dateTo = input.date_to ? new Date(input.date_to) : now;\nif (isNaN(dateTo.getTime())) dateTo = now;\n\nlet dateFrom = input.date_from ? new Date(input.date_from) : new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);\nif (isNaN(dateFrom.getTime())) dateFrom = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);\n\nreturn [{\n  json: {\n    automation_id: '48a75e32-9015-4394-aa67-750034e0ff0b',\n    date_from: dateFrom.toISOString(),\n    date_to: dateTo.toISOString()\n  }\n}];"
+        },
+        "id": "norm-dates-001",
+        "name": "Normalizar Fechas y Parametros",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 1,
+        "position": [
+          220,
+          100
+        ]
+      },
+      {
+        "parameters": {
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "supabaseApi",
+          "method": "GET",
+          "url": "=https://kgrfhfwtcanthrymmvkb.supabase.co/rest/v1/leads?created_at=gte.{{ $json.date_from }}&created_at=lte.{{ $json.date_to }}&select=id,full_name,ai_category,created_at",
+          "sendHeaders": true,
+          "specifyHeaders": "keypair",
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "={{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Authorization",
+                "value": "={{ 'Bearer ' + $credentials.supabaseApi.serviceKey }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "get-leads-summary-001",
+        "name": "Consultar Leads de Supabase",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [
+          440,
+          100
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "YOUR_SUPABASE_CREDENTIAL_ID",
+            "name": "Supabase Account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "supabaseApi",
+          "method": "GET",
+          "url": "https://kgrfhfwtcanthrymmvkb.supabase.co/rest/v1/deals?select=id,title,value,stage,ai_risk_score,ai_risk_factors,created_at,updated_at",
+          "sendHeaders": true,
+          "specifyHeaders": "keypair",
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "={{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Authorization",
+                "value": "={{ 'Bearer ' + $credentials.supabaseApi.serviceKey }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "get-deals-summary-001",
+        "name": "Consultar Deals de Supabase",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [
+          660,
+          100
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "YOUR_SUPABASE_CREDENTIAL_ID",
+            "name": "Supabase Account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const leadItems = $('Consultar Leads de Supabase').all().map(i => i.json);\nconst dealItems = $('Consultar Deals de Supabase').all().map(i => i.json);\nconst params = $('Normalizar Fechas y Parametros').first().json;\n\nconst leads = (leadItems.length === 1 && Array.isArray(leadItems[0])) ? leadItems[0] : leadItems.filter(l => l && l.id);\nconst deals = (dealItems.length === 1 && Array.isArray(dealItems[0])) ? dealItems[0] : dealItems.filter(d => d && d.id);\n\nconst newLeads = leads.length;\nconst hotLeads = leads.filter(l => (l.ai_category || '').toLowerCase() === 'hot').length;\n\nconst dealsByStage = {};\nlet wonDealsCount = 0;\nlet wonDealsTotalValue = 0;\nlet highRiskDealsCount = 0;\n\ndeals.forEach(d => {\n  const stage = (d.stage || 'sin_etapa').toLowerCase();\n  dealsByStage[stage] = (dealsByStage[stage] || 0) + 1;\n\n  if (stage === 'ganado') {\n    wonDealsCount++;\n    wonDealsTotalValue += Number(d.value || 0);\n  }\n\n  if ((d.ai_risk_score || 0) >= 65) {\n    highRiskDealsCount++;\n  }\n});\n\nconst metrics = {\n  date_from: params.date_from,\n  date_to: params.date_to,\n  new_leads_count: newLeads,\n  hot_leads_count: hotLeads,\n  won_deals_count: wonDealsCount,\n  won_deals_total_value: wonDealsTotalValue,\n  active_high_risk_deals_count: highRiskDealsCount,\n  deals_by_stage: dealsByStage,\n  total_deals_count: deals.length\n};\n\nreturn [{\n  json: {\n    automation_id: params.automation_id,\n    metrics\n  }\n}];"
+        },
+        "id": "calc-metrics-001",
+        "name": "Calcular Metricas Comercial",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 1,
+        "position": [
+          880,
+          100
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "{\"contents\":[{\"parts\":[{\"text\":\"Eres el analista ejecutivo de IA de Orbit CRM. Redacta un informe comercial ejecutivo basándote ESTRICTAMENTE en este JSON de métricas del período:\\n{{ JSON.stringify($json.metrics) }}\\n\\nREGLAS DE REDACCIÓN:\\n- Escribe exactamente 2 párrafos cortos y directos.\\n- Tono profesional, ágil y ejecutivo.\\n- Usa máximo 3 emojis en todo el texto.\\n- Menciona la cantidad de leads nuevos y la cantidad de leads 'Hot'.\\n- Menciona el valor financiero total acumulado de los negocios ganados ($ {{ $json.metrics.won_deals_total_value }}).\\n- Si hay negocios con riesgo alto (active_high_risk_deals_count > 0), menciónalo con prioridad.\\n- NUNCA inventes números ni datos que no estén en el JSON.\\n\\nFORMATO:\\n- Texto Markdown limpio, sin bloques de código (sin ```markdown), sin comillas triples.\"}]}],\"generationConfig\":{\"temperature\":0.3,\"maxOutputTokens\":2000}}",
+          "options": {},
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "googlePalmApi"
+        },
+        "id": "gemini-summary-001",
+        "name": "Redactar Resumen con Gemini",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [
+          1100,
+          100
+        ],
+        "credentials": {
+          "googlePalmApi": {
+            "id": "YOUR_GEMINI_CREDENTIAL_ID",
+            "name": "Google Gemini API Account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const response = $input.first().json;\nconst metricsData = $('Calcular Metricas Comercial').first().json;\n\nlet text = '';\ntry {\n  text = response.candidates[0].content.parts[0].text;\n} catch(e) {\n  text = 'Resumen comercial generado para el periodo del ' + metricsData.metrics.date_from + ' al ' + metricsData.metrics.date_to + '.';\n}\n\nconst sanitized = text\n  .replace(/```markdown\\n?/gi, '')\n  .replace(/```json\\n?/gi, '')\n  .replace(/```\\n?/g, '')\n  .trim();\n\nreturn [{\n  json: {\n    automation_id: metricsData.automation_id,\n    metrics: metricsData.metrics,\n    summary_text: sanitized\n  }\n}];"
+        },
+        "id": "sanitize-summary-001",
+        "name": "Sanitizar Markdown y Formatear",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 1,
+        "position": [
+          1320,
+          100
+        ]
+      },
+      {
+        "parameters": {
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "supabaseApi",
+          "method": "POST",
+          "url": "https://kgrfhfwtcanthrymmvkb.supabase.co/rest/v1/activities",
+          "sendHeaders": true,
+          "specifyHeaders": "keypair",
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "return=minimal"
+              },
+              {
+                "name": "apikey",
+                "value": "={{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Authorization",
+                "value": "={{ 'Bearer ' + $credentials.supabaseApi.serviceKey }}"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({ type: 'resumen_semanal', description: $json.summary_text }) }}",
+          "options": {}
+        },
+        "id": "save-activity-001",
+        "name": "Guardar en Activities",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [
+          1540,
+          100
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "YOUR_SUPABASE_CREDENTIAL_ID",
+            "name": "Supabase Account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "supabaseApi",
+          "method": "POST",
+          "url": "https://kgrfhfwtcanthrymmvkb.supabase.co/rest/v1/automation_logs",
+          "sendHeaders": true,
+          "specifyHeaders": "keypair",
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "return=minimal"
+              },
+              {
+                "name": "apikey",
+                "value": "={{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Authorization",
+                "value": "={{ 'Bearer ' + $credentials.supabaseApi.serviceKey }}"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({ automation_id: $('Sanitizar Markdown y Formatear').first().json.automation_id, status: 'success', payload: { trigger_event: 'sub_weekly_summary', date_from: $('Sanitizar Markdown y Formatear').first().json.metrics.date_from, date_to: $('Sanitizar Markdown y Formatear').first().json.metrics.date_to, won_total: $('Sanitizar Markdown y Formatear').first().json.metrics.won_deals_total_value } }) }}",
+          "options": {}
+        },
+        "id": "log-success-summary-001",
+        "name": "Loggear Exito",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [
+          1760,
+          100
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "YOUR_SUPABASE_CREDENTIAL_ID",
+            "name": "Supabase Account"
+          }
+        },
+        "continueOnFail": false
+      },
+      {
+        "parameters": {
+          "values": {
+            "boolean": [
+              {
+                "name": "success",
+                "value": true
+              }
+            ],
+            "string": [
+              {
+                "name": "summary_text",
+                "value": "={{ $('Sanitizar Markdown y Formatear').first().json.summary_text }}"
+              },
+              {
+                "name": "metrics",
+                "value": "={{ $('Sanitizar Markdown y Formatear').first().json.metrics }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "output-summary-001",
+        "name": "Retornar Resultado Estructurado",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 1,
+        "position": [
+          1980,
+          100
+        ]
+      },
+      {
+        "parameters": {},
+        "id": "error-trigger-summary-001",
+        "name": "Error Trigger",
+        "type": "n8n-nodes-base.errorTrigger",
+        "typeVersion": 1,
+        "position": [
+          0,
+          -200
+        ],
+        "continueOnFail": false
+      },
+      {
+        "parameters": {
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "supabaseApi",
+          "method": "POST",
+          "url": "https://kgrfhfwtcanthrymmvkb.supabase.co/rest/v1/automation_logs",
+          "sendHeaders": true,
+          "specifyHeaders": "keypair",
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "return=minimal"
+              },
+              {
+                "name": "apikey",
+                "value": "={{ $credentials.supabaseApi.serviceKey }}"
+              },
+              {
+                "name": "Authorization",
+                "value": "={{ 'Bearer ' + $credentials.supabaseApi.serviceKey }}"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({ automation_id: '48a75e32-9015-4394-aa67-750034e0ff0b', status: 'failed', payload: { trigger_event: 'sub_weekly_summary', error_message: $json.execution?.error?.message || 'Error en ejecucion de sub_weekly_summary', workflow: $json.workflow?.name, node: $json.execution?.lastNodeExecuted } }) }}",
+          "options": {}
+        },
+        "id": "log-error-summary-001",
+        "name": "Loggear Error",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [
+          220,
+          -200
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "YOUR_SUPABASE_CREDENTIAL_ID",
+            "name": "Supabase Account"
+          }
+        },
+        "continueOnFail": false
+      }
+    ],
+    "connections": {
+      "Execute Workflow Trigger": {
+        "main": [
+          [
+            {
+              "node": "Normalizar Fechas y Parametros",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Normalizar Fechas y Parametros": {
+        "main": [
+          [
+            {
+              "node": "Consultar Leads de Supabase",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Consultar Leads de Supabase": {
+        "main": [
+          [
+            {
+              "node": "Consultar Deals de Supabase",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Consultar Deals de Supabase": {
+        "main": [
+          [
+            {
+              "node": "Calcular Metricas Comercial",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Calcular Metricas Comercial": {
+        "main": [
+          [
+            {
+              "node": "Redactar Resumen con Gemini",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Redactar Resumen con Gemini": {
+        "main": [
+          [
+            {
+              "node": "Sanitizar Markdown y Formatear",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Sanitizar Markdown y Formatear": {
+        "main": [
+          [
+            {
+              "node": "Guardar en Activities",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Guardar en Activities": {
+        "main": [
+          [
+            {
+              "node": "Loggear Exito",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Loggear Exito": {
+        "main": [
+          [
+            {
+              "node": "Retornar Resultado Estructurado",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Error Trigger": {
+        "main": [
+          [
+            {
+              "node": "Loggear Error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "pinData": {},
+    "active": false,
+    "settings": {
+      "executionOrder": "v1"
+    },
+    "versionId": "sub-ws-v1-2026",
+    "meta": {
+      "instanceId": "orbit_crm_sub_weekly_summary"
+    },
+    "id": "sub_weekly_summary",
+    "tags": []
+  }
+]
